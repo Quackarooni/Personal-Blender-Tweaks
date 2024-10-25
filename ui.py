@@ -540,6 +540,21 @@ class NODE_PT_reroutes_to_switch(Panel):
         layout.operator("node.convert_switch_type")
 
 
+class NODE_PT_math_node_convert(Panel):
+    bl_label = "Convert Math Nodes"
+    bl_category = "Math Nodes"
+    bl_region_type = "UI"
+    bl_space_type = "NODE_EDITOR"
+
+    @classmethod
+    def poll(cls, context):
+        return context.space_data.edit_tree
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator("node.convert_math_node")
+
+
 class NODE_PT_group_inputs(Panel):
     bl_label = "Group Inputs"
     bl_category = "Group"
@@ -562,18 +577,33 @@ class NODE_PT_group_inputs(Panel):
         row.operator("node.split_group_input", text="Split by Links").split_by = "LINKS"
 
 
-classes = (
-    NODE_PT_personal_settings,
-    NODE_PT_group_utils,
-    NODE_PT_node_info,
-    NODE_PT_asset_operators,
-    # NODE_PT_node_coordinates,
-    NODE_PT_nodegroup_names_and_descriptions,
-    NODE_PT_node_cleanup,
-    NODE_PT_object_data_selector,
-    NODE_PT_reroutes_to_switch,
-    NODE_PT_group_inputs,
-)
+if bpy.app.version >= (4, 3, 0):
+    classes = (
+        NODE_PT_personal_settings,
+        NODE_PT_group_utils,
+        NODE_PT_node_info,
+        NODE_PT_asset_operators,
+        # NODE_PT_node_coordinates,
+        NODE_PT_nodegroup_names_and_descriptions,
+        NODE_PT_node_cleanup,
+        NODE_PT_object_data_selector,
+        NODE_PT_reroutes_to_switch,
+        NODE_PT_math_node_convert,
+        NODE_PT_group_inputs,
+    )
+else:
+    classes = (
+        NODE_PT_personal_settings,
+        NODE_PT_group_utils,
+        NODE_PT_node_info,
+        NODE_PT_asset_operators,
+        # NODE_PT_node_coordinates,
+        NODE_PT_nodegroup_names_and_descriptions,
+        NODE_PT_node_cleanup,
+        NODE_PT_object_data_selector,
+        NODE_PT_reroutes_to_switch,
+        NODE_PT_group_inputs,
+    )
 
 
 def register():

@@ -461,6 +461,7 @@ class NODE_OT_convert_switch_type(Operator):
         if node.bl_idname == "GeometryNodeMenuSwitch":
             switch = tree.nodes.new("GeometryNodeIndexSwitch")
             switch.location = node.location
+            switch.width = node.width
             switch_items = switch.index_switch_items
             switch_items.clear()
             switch.hide = node.hide
@@ -486,6 +487,7 @@ class NODE_OT_convert_switch_type(Operator):
         elif node.bl_idname == "GeometryNodeIndexSwitch":
             switch = tree.nodes.new("GeometryNodeMenuSwitch")
             switch.location = node.location
+            switch.width = node.width
             switch_items = switch.enum_definition.enum_items
             switch_items.clear()
             switch.hide = node.hide
@@ -724,6 +726,109 @@ class NODE_OT_merge_group_input(NodeOperatorBaseclass, Operator):
         return {"FINISHED"}
 
 
+class NODE_OT_convert_math_node(Operator):
+    bl_idname = "node.convert_math_node"
+    bl_label = "Convert Math Node"
+    bl_options = {"REGISTER", "UNDO"}
+
+    @staticmethod
+    def is_convertable(node):
+        try:
+            is_valid_node = getattr(node, "bl_idname", None) in {
+                "ShaderNodeMath",
+                "FunctionNodeIntegerMath",
+            } 
+            
+            is_valid_operation = node.operation in (
+                'ADD', 
+                'SUBTRACT', 
+                'MULTIPLY', 
+                'DIVIDE', 
+                'MULTIPLY_ADD', 
+                'ABSOLUTE', 
+                'POWER', 
+                'MINIMUM',
+                'MAXIMUM', 
+                'SIGN', 
+                # TODO - Find a way to convert one int math node to two float math nodes for these operations
+                #'DIVIDE_ROUND', 
+                #'DIVIDE_FLOOR', 
+                #'DIVIDE_CEIL', 
+                'FLOORED_MODULO', 
+                'MODULO', 
+                )
+
+            return is_valid_node and is_valid_operation
+        except AttributeError:
+            return False
+
+    @classmethod
+    def poll(cls, context):
+        nodes = tuple(filter(cls.is_convertable, context.selected_nodes))
+
+        return len(nodes) > 0
+
+    @staticmethod
+    def convert_node(tree, node):
+        if node.bl_idname == "ShaderNodeMath":
+            switch = tree.nodes.new("FunctionNodeIntegerMath")
+            switch.location = node.location
+            switch.width = node.width
+            switch.hide = node.hide
+            switch.operation = node.operation
+
+            for old_sock, new_sock in zip(node.inputs, switch.inputs):
+                for link in old_sock.links:
+                    new_link = tree.links.new(link.from_socket, new_sock)
+                    new_link.is_muted = link.is_muted
+
+                if hasattr(new_sock, "default_value"):
+                    new_sock.default_value = int(old_sock.default_value)
+
+            #TODO - For some reason .is_muted does not always propagate correctly, invesigate that
+            for old_sock, new_sock in zip(node.outputs, switch.outputs):
+                for link in old_sock.links:
+                    new_link = tree.links.new(new_sock, link.to_socket)
+                    new_link.is_muted = link.is_muted
+
+            tree.nodes.remove(node)
+            tree.nodes.active = switch
+
+        elif node.bl_idname == "FunctionNodeIntegerMath":
+            switch = tree.nodes.new("ShaderNodeMath")
+            switch.location = node.location
+            switch.hide = node.hide
+            switch.width = node.width
+            switch.operation = node.operation
+
+            for old_sock, new_sock in zip(node.inputs, switch.inputs):
+                for link in old_sock.links:
+                    new_link = tree.links.new(link.from_socket, new_sock)
+                    new_link.is_muted = link.is_muted
+
+                if hasattr(new_sock, "default_value"):
+                    new_sock.default_value = old_sock.default_value
+
+            for old_sock, new_sock in zip(node.outputs, switch.outputs):
+                for link in old_sock.links:
+                    new_link = tree.links.new(new_sock, link.to_socket)
+                    new_link.is_muted = link.is_muted
+
+            tree.nodes.remove(node)
+            tree.nodes.active = switch
+        else:
+            raise ValueError
+
+    def execute(self, context):
+        tree = context.space_data.edit_tree
+        nodes = tuple(filter(self.is_convertable, context.selected_nodes))
+
+        for node in nodes:
+            self.convert_node(tree, node)
+
+        return {"FINISHED"}
+
+
 def refresh_ui(context):
     for region in context.area.regions:
         region.tag_redraw()
@@ -747,6 +852,7 @@ classes = (
     NODE_OT_clean_hidden_data_blocks,
     NODE_OT_merge_reroutes_to_switch,
     NODE_OT_convert_switch_type,
+    NODE_OT_convert_math_node,
     NODE_OT_merge_group_input,
     NODE_OT_split_group_input,
 )
