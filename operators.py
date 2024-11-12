@@ -261,6 +261,37 @@ class NODE_OT_multiple_fake_user_clear(Operator):
         return {"FINISHED"}
 
 
+class NODE_OT_multiple_make_local(Operator):
+    bl_idname = "node.multiple_make_local"
+    bl_label = "Make Local"
+    bl_options = {"REGISTER", "UNDO_GROUPED"}
+
+    @classmethod
+    def poll(cls, context):
+        try:
+            return (
+                len(
+                    [n for n in context.selected_nodes if getattr(n, "node_tree", None) and not n.node_tree.is_editable]
+                )
+                > 0
+            )
+        except AttributeError:
+            return False
+
+    def execute(self, context):
+        node_trees = tuple(
+            n.node_tree for n in context.selected_nodes if getattr(n, "node_tree", None) and not n.node_tree.is_editable
+        )
+
+        for node_tree in node_trees:
+            node_tree.make_local()
+
+        refresh_ui(context)
+
+        self.report({"INFO"}, f"Created local copies of {len(node_trees)} linked nodegroups.")
+        return {"FINISHED"}
+
+
 class NODE_OT_clean_invisible_links(Operator):
     bl_idname = "node.clean_invisible_links"
     bl_label = "Clean Invisible Links"
@@ -868,6 +899,7 @@ classes = (
     NODE_OT_convert_math_node,
     NODE_OT_merge_group_input,
     NODE_OT_split_group_input,
+    NODE_OT_multiple_make_local,
 )
 
 

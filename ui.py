@@ -297,6 +297,9 @@ class NODE_PT_asset_operators(Panel):
         row.operator("node.multiple_fake_user_set")
         row.operator("node.multiple_fake_user_clear")
 
+        row = layout.row(align=True)
+        row.operator("node.multiple_make_local")
+
 
 class NODE_PT_node_cleanup(Panel):
     bl_label = "Node Cleanup"
