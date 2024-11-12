@@ -299,6 +299,8 @@ class NODE_PT_asset_operators(Panel):
 
         row = layout.row(align=True)
         row.operator("node.multiple_make_local")
+        row = layout.row(align=True)
+        row.operator("node.multiple_make_local_all")
 
 
 class NODE_PT_node_cleanup(Panel):

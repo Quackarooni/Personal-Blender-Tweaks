@@ -1,4 +1,5 @@
 import bpy
+import re
 
 from bpy.types import NodeSocketVirtual, Operator
 from bpy.props import EnumProperty, StringProperty
@@ -286,6 +287,61 @@ class NODE_OT_multiple_make_local(Operator):
         for node_tree in node_trees:
             node_tree.make_local()
 
+        refresh_ui(context)
+
+        self.report({"INFO"}, f"Created local copies of {len(node_trees)} linked nodegroups.")
+        return {"FINISHED"}
+
+
+class NODE_OT_multiple_make_local_all(Operator):
+    bl_idname = "node.multiple_make_local_all"
+    bl_label = "Make Local (All)"
+    bl_options = {"REGISTER", "UNDO_GROUPED"}
+
+    @classmethod
+    def poll(cls, context):
+        try:
+            return (
+                len(tuple(tree for tree in context.blend_data.node_groups if not tree.is_editable))
+                > 0
+            )
+        except AttributeError:
+            return False
+
+    @staticmethod
+    def remove_duplicate_groups():
+        node_groups = bpy.data.node_groups
+
+        for group in node_groups:
+            unduped_name, *_ = re.split("\.\d+$", group.name)
+
+            if unduped_name in node_groups:
+                group.user_remap(node_groups[unduped_name])
+            else:
+                group.name = unduped_name
+
+        #for group in added_groups:
+        #    split_name, *_ = re.split("\.\d+$", group.name)
+        #
+        #    if len(_) > 0 and split_name in bpy.data.node_groups:
+        #        node_groups.remove(group)
+
+    def make_local(self, nodes):
+        node_trees = tuple(n.node_tree for n in nodes if getattr(n, "node_tree", None) and not n.node_tree.is_editable)
+
+        for node_tree in node_trees:
+            node_tree.make_local()
+            self.make_local(node_tree.nodes)
+        
+
+
+    def execute(self, context):
+        node_trees = tuple(
+            tree for tree in context.blend_data.node_groups
+        )
+
+        self.make_local(context.space_data.edit_tree.nodes)
+        self.remove_duplicate_groups()
         refresh_ui(context)
 
         self.report({"INFO"}, f"Created local copies of {len(node_trees)} linked nodegroups.")
@@ -900,6 +956,7 @@ classes = (
     NODE_OT_merge_group_input,
     NODE_OT_split_group_input,
     NODE_OT_multiple_make_local,
+    NODE_OT_multiple_make_local_all,
 )
 
 
