@@ -212,7 +212,7 @@ class NODE_PT_node_info(Panel):
         try:
             size = str(tuple(active_node.dimensions))
             dimensions = str((active_node.width, utils.get_height(active_node)))
-        except ZeroDivisionError:
+        except (ZeroDivisionError, ValueError):
             size = "None"
             dimensions = "None"
 
