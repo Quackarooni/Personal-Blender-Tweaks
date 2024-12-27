@@ -176,11 +176,14 @@ def filter_hidden_data_blocks(links):
 @extend_to_return_tuple
 def get_data_block_defaults(tree, *, in_out):
     for socket in tree.interface.items_tree:
+        if socket.item_type == 'PANEL':
+            continue
+        
         # in_out_status = True if (in_out == 'BOTH') else socket.in_out == in_out
         # TODO - Add enums for selecting ('INPUT', 'OUTPUT', 'BOTH') and erroring at invalid inputs
         in_out_status = True if (in_out == "BOTH") else socket.in_out == in_out
 
-        if socket.item_type == "SOCKET" and in_out_status:
+        if in_out_status:
             if not hasattr(socket, "default_value"):
                 continue
 
