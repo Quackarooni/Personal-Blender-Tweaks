@@ -935,7 +935,8 @@ def refresh_ui(context):
     return None
 
 
-node_cleanup_cache = {}
+
+
 
 
 classes = (
@@ -968,5 +969,3 @@ def register():
 def unregister():
     for cls in classes:
         bpy.utils.unregister_class(cls)
-
-    node_cleanup_cache.clear()
