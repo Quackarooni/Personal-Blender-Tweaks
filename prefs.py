@@ -25,6 +25,12 @@ class PBTweaksPreferences(bpy.types.AddonPreferences):
         description="Show Hidden Data-Blocks",
     )
 
+    show_hidden_nodegroups: BoolProperty(
+        name="Show Hidden Nodegroups",
+        default=False,
+        description="Show Hidden Nodegroups",
+    )
+
     show_group_data_block_defaults: BoolProperty(
         name="",
         default=False,

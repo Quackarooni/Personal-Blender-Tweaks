@@ -582,6 +582,27 @@ class NODE_PT_group_inputs(Panel):
         row.operator("node.split_group_input", text="Split by Links").split_by = "LINKS"
 
 
+class NODE_PT_replace_group(Panel):
+    bl_label = "Replace Group"
+    bl_category = "Node"
+    bl_region_type = "UI"
+    bl_space_type = "NODE_EDITOR"
+
+    @classmethod
+    def poll(cls, context):
+        active_node = context.active_node
+        return hasattr(active_node, "node_tree") and active_node.select
+
+    def draw(self, context):
+        layout = self.layout
+        prefs = utils.fetch_user_preferences()
+
+        wm = context.window_manager
+        layout.prop(wm, "nodegroup_to_replace", text="")
+        layout.prop(prefs, "show_hidden_nodegroups")
+        layout.operator("NODE_OT_batch_replace_group")
+
+
 if bpy.app.version >= (4, 3, 0):
     classes = (
         NODE_PT_personal_settings,
@@ -589,12 +610,13 @@ if bpy.app.version >= (4, 3, 0):
         NODE_PT_node_info,
         NODE_PT_asset_operators,
         # NODE_PT_node_coordinates,
-        NODE_PT_nodegroup_names_and_descriptions,
+        # NODE_PT_nodegroup_names_and_descriptions,
         NODE_PT_node_cleanup,
         NODE_PT_object_data_selector,
         NODE_PT_reroutes_to_switch,
         NODE_PT_math_node_convert,
         NODE_PT_group_inputs,
+        NODE_PT_replace_group
     )
 else:
     classes = (
@@ -603,12 +625,23 @@ else:
         NODE_PT_node_info,
         NODE_PT_asset_operators,
         # NODE_PT_node_coordinates,
-        NODE_PT_nodegroup_names_and_descriptions,
+        # NODE_PT_nodegroup_names_and_descriptions,
         NODE_PT_node_cleanup,
         NODE_PT_object_data_selector,
         NODE_PT_reroutes_to_switch,
         NODE_PT_group_inputs,
+        NODE_PT_replace_group
     )
+
+
+def replace_nodegroup_poll(self, object):
+    tree = bpy.context.space_data.edit_tree
+    group = object
+
+    return (group.bl_idname == tree.bl_idname and
+            not group.contains_tree(tree) and
+            (not group.name.startswith('.') or fetch_user_preferences("show_hidden_nodegroups"))
+            )
 
 
 def register():
@@ -634,6 +667,12 @@ def register():
     bpy.types.NodeTree.test_object_prop = bpy.props.StringProperty(
         update=data_selector_callback
     )
+
+    bpy.types.WindowManager.nodegroup_to_replace = bpy.props.PointerProperty(
+        name="Group to Replace",
+        type=bpy.types.NodeTree,
+        poll=replace_nodegroup_poll,
+    )
     # bpy.types.NodeTree.test_object_prop = PointerProperty(type=bpy.types.Object, update=data_selector_callback)
     # bpy.types.NodeTree.test_object_prop = PointerProperty(type=bpy.types.Object, poll=lambda self, object: object.type == 'LIGHT')
 
@@ -647,6 +686,7 @@ def unregister():
 
     bpy.types.NODE_HT_header.remove(draw_personal_settings)
     del bpy.types.NodeTree.test_object_prop
+    del bpy.types.WindowManager.nodegroup_to_replace
 
 
 if __name__ == "__main__":

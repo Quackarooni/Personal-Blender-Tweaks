@@ -817,7 +817,42 @@ class NODE_OT_merge_group_input(NodeOperatorBaseclass, Operator):
             tree.nodes.remove(old_node)
 
         return {"FINISHED"}
+    
 
+class NODE_OT_batch_replace_group(Operator):
+    bl_idname = "node.batch_replace_group"
+    bl_label = "Batch Replace Group"
+    bl_options = {"REGISTER", "UNDO"}
+
+    @classmethod
+    def poll(cls, context):
+        active_node = context.active_node
+        wm = context.window_manager
+        tree = context.space_data.edit_tree
+        group = wm.nodegroup_to_replace
+
+        is_valid_group = (group.bl_idname == tree.bl_idname and not group.contains_tree(tree))
+
+        return all((
+            hasattr(active_node, "node_tree"),
+            active_node.select,
+            wm.nodegroup_to_replace is not None,
+            is_valid_group
+        ))
+        
+
+    def execute(self, context):
+        wm = context.window_manager
+
+        group_nodes = tuple(
+            n for n in context.selected_nodes if getattr(n, "node_tree", None)
+        )
+
+        for node in group_nodes:
+            node.node_tree = wm.nodegroup_to_replace
+
+        return {"FINISHED"}
+    
 
 class NODE_OT_convert_math_node(Operator):
     bl_idname = "node.convert_math_node"
@@ -935,10 +970,6 @@ def refresh_ui(context):
     return None
 
 
-
-
-
-
 classes = (
     NODE_OT_pin_node_editor,
     NODE_OT_hide_unused_group_inputs,
@@ -958,6 +989,7 @@ classes = (
     NODE_OT_split_group_input,
     NODE_OT_multiple_make_local,
     NODE_OT_multiple_make_local_all,
+    NODE_OT_batch_replace_group,
 )
 
 
