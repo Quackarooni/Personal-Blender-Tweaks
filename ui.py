@@ -210,6 +210,7 @@ class NODE_PT_node_info(Panel):
 
         active_node = context.active_node
         try:
+            location = str((active_node.location.x, active_node.location.y))
             size = str(tuple(active_node.dimensions))
             dimensions = str((active_node.width, utils.get_height(active_node)))
         except (ZeroDivisionError, ValueError):
@@ -223,6 +224,7 @@ class NODE_PT_node_info(Panel):
             [
                 ("size", size),
                 ("dimensions", dimensions),
+                ("location", location)
             ]
         )
 
@@ -543,6 +545,7 @@ class NODE_PT_reroutes_to_switch(Panel):
 
         layout.operator("node.merge_reroutes_to_switch")
         layout.operator("node.convert_switch_type")
+        layout.operator("node.menu_switch_to_enum")
 
 
 class NODE_PT_math_node_convert(Panel):

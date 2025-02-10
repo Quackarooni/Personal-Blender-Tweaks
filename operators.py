@@ -2,7 +2,7 @@ import bpy
 import re
 
 from bpy.types import NodeSocketVirtual, Operator
-from bpy.props import EnumProperty, StringProperty
+from bpy.props import BoolProperty, EnumProperty, StringProperty
 from collections import Counter
 from itertools import zip_longest
 from math import ceil
@@ -606,6 +606,128 @@ class NODE_OT_convert_switch_type(Operator):
             raise ValueError
 
         return {"FINISHED"}
+    
+
+class NODE_OT_menu_switch_to_enum(Operator):
+    bl_idname = "node.menu_switch_to_enum"
+    bl_label = "Menu Switch to Enum"
+    bl_options = {"REGISTER", "UNDO"}
+
+    group_name: StringProperty(name="", default="", options={'SKIP_SAVE'})
+    is_hidden: BoolProperty(name="Is Hidden", default=True, options={'SKIP_SAVE'})
+
+    def draw(self, context):
+        layout = self.layout
+
+        row = layout.row()
+        if context.selected_nodes:
+            row.label(icon="NODETREE")
+            row.activate_init = True
+            row.prop(self, "group_name")
+            layout.prop(self, "is_hidden")
+        else:
+            row.label(icon="ERROR")
+            row.label(text="No nodes selected")
+
+    @classmethod
+    def poll(cls, context):
+        return getattr(context.active_node, "bl_idname", None) == "GeometryNodeMenuSwitch"
+
+    @staticmethod
+    def transfer_menu_switch_items(source, target):
+        source_items = source.enum_definition.enum_items
+        target_items = target.enum_definition.enum_items
+
+        target_items.clear()
+
+        for old_item in source_items:
+            new_item = target_items.new(old_item.name)
+            new_item.description = old_item.description
+
+    @staticmethod
+    def convert_to_enum_switch(node):
+        node.data_type = "INT"
+        for index, socket in enumerate(node.inputs[1:-1]):
+            socket.default_value = index
+
+    @staticmethod
+    def init_internal_tree(tree):
+        group_input = tree.nodes.new("NodeGroupInput")
+        group_output = tree.nodes.new("NodeGroupOutput")
+        new_switch = tree.nodes.new("GeometryNodeMenuSwitch")
+
+        group_input.location = (-230.0, 44.5)
+        new_switch.location = (-70.0, 93.5)
+        group_output.location = (90.0, 93.5)
+
+        return group_input, group_output, new_switch
+    
+    def generate_group_name(self):
+        group_name = f"ENUM_{self.group_name}"
+        if self.is_hidden:
+            group_name = "." + group_name
+
+        return group_name
+
+    def execute(self, context):
+        bpy.ops.node.select_all(action='DESELECT')
+
+        old_switch = context.active_node
+        groups = context.blend_data.node_groups
+        internal_tree = groups.new(self.generate_group_name(), "GeometryNodeTree")
+        group_input, group_output, new_switch = self.init_internal_tree(internal_tree)
+
+        self.transfer_menu_switch_items(old_switch, new_switch)
+        new_switch.inputs[0].default_value = old_switch.inputs[0].default_value
+        self.convert_to_enum_switch(new_switch)
+
+        group_sockets = internal_tree.interface
+        menu_socket = group_sockets.new_socket(self.group_name, in_out="INPUT", socket_type="NodeSocketMenu")
+        output_socket = group_sockets.new_socket("Output", in_out="OUTPUT", socket_type="NodeSocketInt")
+
+        #menu_socket.default_value = new_switch.inputs[0].default_value
+
+        internal_tree.links.new(group_input.outputs[0], new_switch.inputs[0])
+        internal_tree.links.new(new_switch.outputs[0], group_output.inputs[0])
+
+        tree = context.space_data.edit_tree
+        group_node = tree.nodes.new("GeometryNodeGroup")
+        group_node.node_tree = internal_tree
+        group_node.inputs[0].default_value = new_switch.inputs[0].default_value
+        
+        # Create index switch
+        index_switch = tree.nodes.new("GeometryNodeIndexSwitch")
+        index_switch_items = index_switch.index_switch_items
+        index_switch_items.clear()
+
+        for item in old_switch.enum_definition.enum_items:
+            index_switch_items.new()
+
+        # Transfer Links and properties
+        utils.transfer_properties(old_switch, group_node, props=["parent", "width", "location", "label"])
+        utils.transfer_properties(old_switch, index_switch, props=["parent", "location", "data_type"])
+        utils.transfer_node_links(tree, old_switch.inputs[0], group_node.inputs[0])
+        utils.transfer_node_links(tree, old_switch.outputs[0], index_switch.outputs[0])
+        for source, target in zip(old_switch.inputs[1:-1], index_switch.inputs[1:-1]):
+            utils.transfer_node_links(tree, source, target)
+            if hasattr(source, "default_value") and hasattr(target, "default_value"):
+                target.default_value = source.default_value 
+
+        index_switch.location.x += group_node.width + 20
+
+        # Center New Nodes on Old Switch
+        total_width = index_switch.width + group_node.width + 20
+        for node in (index_switch, group_node):
+            node.location.x -= total_width/2 - old_switch.width/2
+
+        tree.links.new(group_node.outputs[0], index_switch.inputs[0])
+        tree.nodes.remove(old_switch)
+        tree.nodes.active = group_node
+
+        return {"FINISHED"}
+    
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self, title="Create Enum Group")
 
 
 class NodeOperatorBaseclass:
@@ -987,6 +1109,7 @@ classes = (
     NODE_OT_clean_hidden_data_blocks,
     NODE_OT_merge_reroutes_to_switch,
     NODE_OT_convert_switch_type,
+    NODE_OT_menu_switch_to_enum,
     NODE_OT_convert_math_node,
     NODE_OT_merge_group_input,
     NODE_OT_split_group_input,
