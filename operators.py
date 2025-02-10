@@ -831,6 +831,9 @@ class NODE_OT_batch_replace_group(Operator):
         tree = context.space_data.edit_tree
         group = wm.nodegroup_to_replace
 
+        if group is None:
+            return False
+
         is_valid_group = (group.bl_idname == tree.bl_idname and not group.contains_tree(tree))
 
         return all((
