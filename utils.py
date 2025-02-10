@@ -39,6 +39,12 @@ def extend_to_return_tuple(func):
     return wrapper
 
 
+def transfer_properties(source, target, props):
+    for prop_name in props:
+        prop = getattr(source, prop_name)
+        setattr(target, prop_name, prop)
+
+
 def fetch_user_preferences(attr_id=None):
     prefs = bpy.context.preferences.addons[__package__].preferences
 
