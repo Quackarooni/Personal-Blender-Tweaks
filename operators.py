@@ -3,9 +3,11 @@ import re
 
 from bpy.types import NodeSocketVirtual, Operator
 from bpy.props import BoolProperty, EnumProperty, StringProperty
+
 from collections import Counter
 from itertools import zip_longest
 from math import ceil
+from mathutils import Vector
 
 from .utils import fetch_user_preferences
 from . import utils
@@ -775,6 +777,19 @@ class NODE_OT_split_group_input(NodeOperatorBaseclass, Operator):
 
         return has_selection
 
+    @staticmethod
+    def arrange_nodes(tree, added_links, padding=0.0):
+        with utils.TemporaryUnframe(tree.nodes):
+            for link in added_links:
+                node = link.from_node
+                to_socket = link.to_socket
+
+                # Since this is a newly added node, all location/dimension values are (0.0, 0.0)
+                # But since the sizes of the nodes in these contexts are identical, they can be precalculated
+                node_pos_minus_socket_pos = Vector((-140.0 - padding, 35.0)) 
+                node.location = utils.get_socket_location(to_socket) + node_pos_minus_socket_pos
+
+
     def execute(self, context):
         tree = utils.fetch_active_nodetree(context)
         selected_nodes = context.selected_nodes
@@ -816,7 +831,17 @@ class NODE_OT_split_group_input(NodeOperatorBaseclass, Operator):
                     utils.transfer_node_links(tree, old_socket, new_socket)
                     added_nodes.append(new_node)
 
+                if added_nodes:
+                    utils.arrange_along_column(added_nodes, spacing=20)
+                    utils.align_by_bounding_box(
+                        target_nodes=[old_node], nodes_to_move=added_nodes
+                    )
+                        
+                tree.nodes.remove(old_node)
+
             elif self.split_by == "LINKS":
+                added_links = []
+
                 if len(tuple(filter(self.is_valid_socket, old_node.outputs))) <= 0:
                     continue
 
@@ -828,7 +853,6 @@ class NODE_OT_split_group_input(NodeOperatorBaseclass, Operator):
                         old_socket.links, key=lambda x: -x.to_node.location.y
                     ):
                         new_node = tree.nodes.new(self.group_input_idname)
-                        new_node.parent = old_node.parent
                         new_node.width = old_node.width
                         new_node.label = old_node.label
                         new_node_sockets = filter(
@@ -838,22 +862,23 @@ class NODE_OT_split_group_input(NodeOperatorBaseclass, Operator):
                         for soc in new_node_sockets:
                             soc.hide = True
 
+                        to_socket = link.to_socket
                         new_socket = new_node.outputs[index]
                         new_socket.hide = False
 
-                        tree.links.new(new_socket, link.to_socket)
+                        link = tree.links.new(new_socket, to_socket)
+                        new_node.parent = link.to_node.parent
+                        added_links.append(link)
                         added_nodes.append(new_node)
+
+                tree.nodes.remove(old_node)
+                
+
+                # TODO - Make this padding controllable by user preference
+                self.arrange_nodes(tree, added_links, padding=30)
+                        
             else:
                 raise ValueError
-
-            # TODO - Make this controllable by user preference
-            if added_nodes:
-                utils.arrange_along_column(added_nodes, spacing=20)
-                utils.align_by_bounding_box(
-                    target_nodes=[old_node], nodes_to_move=added_nodes
-                )
-
-            tree.nodes.remove(old_node)
 
         return {"FINISHED"}
 
