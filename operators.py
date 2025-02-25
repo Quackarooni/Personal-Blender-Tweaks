@@ -9,7 +9,7 @@ from itertools import zip_longest
 from math import ceil
 from mathutils import Vector
 
-from .utils import fetch_user_preferences
+from .utils import fetch_user_preferences, return_false_when
 from . import utils
 
 
@@ -50,20 +50,17 @@ class NODE_OT_hide_unused_group_inputs(Operator):
     )
 
     @classmethod
+    @return_false_when(AttributeError)
     def poll(cls, context):
-        try:
-            space = context.space_data
+        space = context.space_data
 
-            is_existing = space.edit_tree is not None
-            is_node_editor = space.type == "NODE_EDITOR"
-            has_group_input = any(
-                (node.bl_idname == "NodeGroupInput") for node in space.edit_tree.nodes
-            )
+        is_existing = space.edit_tree is not None
+        is_node_editor = space.type == "NODE_EDITOR"
+        has_group_input = any(
+            (node.bl_idname == "NodeGroupInput") for node in space.edit_tree.nodes
+        )
 
-            return all((is_existing, is_node_editor, has_group_input))
-
-        except AttributeError:
-            return False
+        return all((is_existing, is_node_editor, has_group_input))
 
     def execute(self, context):
         prefs = fetch_user_preferences()
@@ -150,16 +147,13 @@ class NODE_OT_multiple_asset_mark(Operator):
     bl_options = {"REGISTER", "UNDO_GROUPED"}
 
     @classmethod
+    @return_false_when(AttributeError)
     def poll(cls, context):
-        try:
-            group_nodes = tuple(
-                n for n in context.selected_nodes if getattr(n, "node_tree", None)
-            )
-            return len(group_nodes) > 0
-
-        except AttributeError:
-            return False
-
+        group_nodes = tuple(
+            n for n in context.selected_nodes if getattr(n, "node_tree", None)
+        )
+        return len(group_nodes) > 0
+    
     def execute(self, context):
         node_trees = tuple(
             n.node_tree for n in context.selected_nodes if getattr(n, "node_tree", None)
@@ -178,16 +172,13 @@ class NODE_OT_multiple_asset_clear(Operator):
     bl_options = {"REGISTER", "UNDO_GROUPED"}
 
     @classmethod
+    @return_false_when(AttributeError)
     def poll(cls, context):
-        try:
-            group_nodes = tuple(
-                n for n in context.selected_nodes if getattr(n, "node_tree", None)
-            )
-            return len(group_nodes) > 0
-
-        except AttributeError:
-            return False
-
+        group_nodes = tuple(
+            n for n in context.selected_nodes if getattr(n, "node_tree", None)
+        )
+        return len(group_nodes) > 0
+    
     def execute(self, context):
         node_trees = tuple(
             n.node_tree for n in context.selected_nodes if getattr(n, "node_tree", None)
@@ -206,16 +197,13 @@ class NODE_OT_multiple_fake_user_set(Operator):
     bl_options = {"REGISTER", "UNDO_GROUPED"}
 
     @classmethod
+    @return_false_when(AttributeError)
     def poll(cls, context):
-        try:
-            group_nodes = tuple(
-                n for n in context.selected_nodes if getattr(n, "node_tree", None)
-            )
-            return len(group_nodes) > 0
-
-        except AttributeError:
-            return False
-
+        group_nodes = tuple(
+            n for n in context.selected_nodes if getattr(n, "node_tree", None)
+        )
+        return len(group_nodes) > 0
+    
     def execute(self, context):
         node_trees = tuple(
             n.node_tree for n in context.selected_nodes if getattr(n, "node_tree", None)
@@ -236,15 +224,12 @@ class NODE_OT_multiple_fake_user_clear(Operator):
     bl_options = {"REGISTER", "UNDO_GROUPED"}
 
     @classmethod
+    @return_false_when(AttributeError)
     def poll(cls, context):
-        try:
-            group_nodes = tuple(
-                n for n in context.selected_nodes if getattr(n, "node_tree", None)
-            )
-            return len(group_nodes) > 0
-
-        except AttributeError:
-            return False
+        group_nodes = tuple(
+            n for n in context.selected_nodes if getattr(n, "node_tree", None)
+        )
+        return len(group_nodes) > 0
 
     def execute(self, context):
         node_trees = tuple(
@@ -266,17 +251,14 @@ class NODE_OT_multiple_make_local(Operator):
     bl_options = {"REGISTER", "UNDO_GROUPED"}
 
     @classmethod
+    @return_false_when(AttributeError)
     def poll(cls, context):
-        try:
-            editable_groups = tuple(
-                n
-                for n in context.selected_nodes
-                if getattr(n, "node_tree", None) and not n.node_tree.is_editable
-            )
-            return len(editable_groups) > 0
-
-        except AttributeError:
-            return False
+        editable_groups = tuple(
+            n
+            for n in context.selected_nodes
+            if getattr(n, "node_tree", None) and not n.node_tree.is_editable
+        )
+        return len(editable_groups) > 0
 
     def execute(self, context):
         node_trees = tuple(
@@ -302,15 +284,12 @@ class NODE_OT_multiple_make_local_all(Operator):
     bl_options = {"REGISTER", "UNDO_GROUPED"}
 
     @classmethod
+    @return_false_when(AttributeError)
     def poll(cls, context):
-        try:
-            editable_groups = tuple(
-                tree for tree in context.blend_data.node_groups if not tree.is_editable
-            )
-            return len(editable_groups) > 0
-
-        except AttributeError:
-            return False
+        editable_groups = tuple(
+            tree for tree in context.blend_data.node_groups if not tree.is_editable
+        )
+        return len(editable_groups) > 0
 
     @staticmethod
     def remove_duplicate_groups():
@@ -360,12 +339,9 @@ class NODE_OT_clean_invisible_links(Operator):
     bl_options = {"REGISTER", "UNDO_GROUPED"}
 
     @classmethod
+    @return_false_when(AttributeError)
     def poll(cls, context):
-        try:
-            links = context.space_data.edit_tree.links
-        except AttributeError:
-            return False
-
+        links = context.space_data.edit_tree.links
         return len(utils.filter_hidden_links(links, as_tuple=True)) > 0
 
     def execute(self, context):
@@ -750,15 +726,12 @@ class NODE_OT_menu_switch_to_enum(Operator):
 
 class NodeOperatorBaseclass:
     @classmethod
+    @return_false_when(AttributeError)
     def poll(cls, context):
-        try:
-            space = context.space_data
-            tree_exists = space.node_tree is not None
-            is_node_editor = space.type == "NODE_EDITOR"
-            return tree_exists and is_node_editor
-
-        except AttributeError:
-            return False
+        space = context.space_data
+        tree_exists = space.node_tree is not None
+        is_node_editor = space.type == "NODE_EDITOR"
+        return tree_exists and is_node_editor
 
 
 # TODO - Refactor this operator to run modal (this might avoids ZeroDivisionError due to node.dimensions not being refreshed yet)
@@ -1027,35 +1000,33 @@ class NODE_OT_convert_math_node(Operator):
     bl_options = {"REGISTER", "UNDO"}
 
     @staticmethod
+    @return_false_when(AttributeError)
     def is_convertable(node):
-        try:
-            is_valid_node = getattr(node, "bl_idname", None) in {
-                "ShaderNodeMath",
-                "FunctionNodeIntegerMath",
-            }
+        is_valid_node = getattr(node, "bl_idname", None) in {
+            "ShaderNodeMath",
+            "FunctionNodeIntegerMath",
+        }
 
-            is_valid_operation = node.operation in (
-                "ADD",
-                "SUBTRACT",
-                "MULTIPLY",
-                "DIVIDE",
-                "MULTIPLY_ADD",
-                "ABSOLUTE",
-                "POWER",
-                "MINIMUM",
-                "MAXIMUM",
-                "SIGN",
-                # TODO - Find a way to convert one int math node to two float math nodes for these operations
-                #'DIVIDE_ROUND',
-                #'DIVIDE_FLOOR',
-                #'DIVIDE_CEIL',
-                "FLOORED_MODULO",
-                "MODULO",
-            )
+        is_valid_operation = node.operation in (
+            "ADD",
+            "SUBTRACT",
+            "MULTIPLY",
+            "DIVIDE",
+            "MULTIPLY_ADD",
+            "ABSOLUTE",
+            "POWER",
+            "MINIMUM",
+            "MAXIMUM",
+            "SIGN",
+            # TODO - Find a way to convert one int math node to two float math nodes for these operations
+            #'DIVIDE_ROUND',
+            #'DIVIDE_FLOOR',
+            #'DIVIDE_CEIL',
+            "FLOORED_MODULO",
+            "MODULO",
+        )
 
-            return is_valid_node and is_valid_operation
-        except AttributeError:
-            return False
+        return is_valid_node and is_valid_operation
 
     @classmethod
     def poll(cls, context):

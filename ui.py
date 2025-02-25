@@ -2,7 +2,7 @@ import bpy
 from bpy.types import Panel
 
 from . import utils
-from .utils import fetch_user_preferences
+from .utils import fetch_user_preferences, return_false_when
 
 import itertools
 from rna_keymap_ui import _indented_layout
@@ -72,23 +72,15 @@ class NODE_PT_nodegroup_names_and_descriptions(Panel):
     bl_options = {"DEFAULT_CLOSED"}
 
     @classmethod
+    @return_false_when(AttributeError)
     def poll(cls, context):
-        try:
-            return (
-                context.active_node.select and context.active_node.node_tree is not None
-            )
-        except AttributeError:
-            return False
+        return (context.active_node.select and context.active_node.node_tree is not None)
 
     def draw(self, context):
         layout = self.layout
         layout.column(align=True)
         active_node = context.active_node
-
-        try:
-            tree = active_node.node_tree
-        except AttributeError:
-            return
+        tree = active_node.node_tree
 
         sort_function = lambda i: i.in_out if hasattr(i, "in_out") else i.item_type
         items_tree = sorted(tree.interface.items_tree, key=sort_function)
@@ -137,14 +129,12 @@ class NODE_PT_menu_switch_all_descriptions(Panel):
     bl_options = {"DEFAULT_CLOSED"}
 
     @classmethod
+    @return_false_when(AttributeError)
     def poll(cls, context):
-        try:
-            return (
-                context.active_node.bl_idname == "GeometryNodeMenuSwitch"
-                and context.active_node.select
-            )
-        except AttributeError:
-            return False
+        return (
+            context.active_node.bl_idname == "GeometryNodeMenuSwitch"
+            and context.active_node.select
+        )
 
     def draw(self, context):
         layout = self.layout
@@ -183,11 +173,9 @@ class NODE_PT_node_info(Panel):
     bl_options = {"DEFAULT_CLOSED"}
 
     @classmethod
+    @return_false_when(AttributeError)
     def poll(cls, context):
-        try:
-            return context.active_node is not None
-        except AttributeError:
-            return False
+        return context.active_node is not None
 
     def draw(self, context):
         layout = self.layout
@@ -241,10 +229,7 @@ class NODE_PT_node_coordinates(Panel):
 
     @classmethod
     def poll(cls, context):
-        try:
-            return context.active_node is not None
-        except AttributeError:
-            return False
+        return context.active_node is not None
 
     def draw(self, context):
         layout = self.layout

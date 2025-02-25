@@ -43,6 +43,23 @@ def extend_to_return_tuple(func):
     return wrapper
 
 
+# Decorator for allowing poll functions to safely return False
+# should they encounter a specific kind of Exception
+def return_false_when(*args, **_):
+    exceptions = *args,
+
+    def decorator(poll):
+        @wraps(poll)
+        def wrapper(self, context):
+            try:
+                return poll(self, context)
+            except exceptions:
+                return False
+            
+        return wrapper
+    return decorator
+
+
 def transfer_properties(source, target, props):
     for prop_name in props:
         prop = getattr(source, prop_name)
