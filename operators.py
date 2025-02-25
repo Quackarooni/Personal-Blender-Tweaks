@@ -56,9 +56,7 @@ class NODE_OT_hide_unused_group_inputs(Operator):
 
         is_existing = space.edit_tree is not None
         is_node_editor = space.type == "NODE_EDITOR"
-        has_group_input = any(
-            (node.bl_idname == "NodeGroupInput") for node in space.edit_tree.nodes
-        )
+        has_group_input = any((node.bl_idname == "NodeGroupInput") for node in space.edit_tree.nodes)
 
         return all((is_existing, is_node_editor, has_group_input))
 
@@ -149,15 +147,11 @@ class NODE_OT_multiple_asset_mark(Operator):
     @classmethod
     @return_false_when(AttributeError)
     def poll(cls, context):
-        group_nodes = tuple(
-            n for n in context.selected_nodes if getattr(n, "node_tree", None)
-        )
+        group_nodes = tuple(n for n in context.selected_nodes if getattr(n, "node_tree", None))
         return len(group_nodes) > 0
-    
+
     def execute(self, context):
-        node_trees = tuple(
-            n.node_tree for n in context.selected_nodes if getattr(n, "node_tree", None)
-        )
+        node_trees = tuple(n.node_tree for n in context.selected_nodes if getattr(n, "node_tree", None))
 
         for node_tree in node_trees:
             node_tree.asset_mark()
@@ -174,15 +168,11 @@ class NODE_OT_multiple_asset_clear(Operator):
     @classmethod
     @return_false_when(AttributeError)
     def poll(cls, context):
-        group_nodes = tuple(
-            n for n in context.selected_nodes if getattr(n, "node_tree", None)
-        )
+        group_nodes = tuple(n for n in context.selected_nodes if getattr(n, "node_tree", None))
         return len(group_nodes) > 0
-    
+
     def execute(self, context):
-        node_trees = tuple(
-            n.node_tree for n in context.selected_nodes if getattr(n, "node_tree", None)
-        )
+        node_trees = tuple(n.node_tree for n in context.selected_nodes if getattr(n, "node_tree", None))
 
         for node_tree in node_trees:
             node_tree.asset_clear()
@@ -199,15 +189,11 @@ class NODE_OT_multiple_fake_user_set(Operator):
     @classmethod
     @return_false_when(AttributeError)
     def poll(cls, context):
-        group_nodes = tuple(
-            n for n in context.selected_nodes if getattr(n, "node_tree", None)
-        )
+        group_nodes = tuple(n for n in context.selected_nodes if getattr(n, "node_tree", None))
         return len(group_nodes) > 0
-    
+
     def execute(self, context):
-        node_trees = tuple(
-            n.node_tree for n in context.selected_nodes if getattr(n, "node_tree", None)
-        )
+        node_trees = tuple(n.node_tree for n in context.selected_nodes if getattr(n, "node_tree", None))
 
         for node_tree in node_trees:
             node_tree.use_fake_user = True
@@ -226,15 +212,11 @@ class NODE_OT_multiple_fake_user_clear(Operator):
     @classmethod
     @return_false_when(AttributeError)
     def poll(cls, context):
-        group_nodes = tuple(
-            n for n in context.selected_nodes if getattr(n, "node_tree", None)
-        )
+        group_nodes = tuple(n for n in context.selected_nodes if getattr(n, "node_tree", None))
         return len(group_nodes) > 0
 
     def execute(self, context):
-        node_trees = tuple(
-            n.node_tree for n in context.selected_nodes if getattr(n, "node_tree", None)
-        )
+        node_trees = tuple(n.node_tree for n in context.selected_nodes if getattr(n, "node_tree", None))
 
         for node_tree in node_trees:
             node_tree.use_fake_user = False
@@ -254,17 +236,13 @@ class NODE_OT_multiple_make_local(Operator):
     @return_false_when(AttributeError)
     def poll(cls, context):
         editable_groups = tuple(
-            n
-            for n in context.selected_nodes
-            if getattr(n, "node_tree", None) and not n.node_tree.is_editable
+            n for n in context.selected_nodes if getattr(n, "node_tree", None) and not n.node_tree.is_editable
         )
         return len(editable_groups) > 0
 
     def execute(self, context):
         node_trees = tuple(
-            n.node_tree
-            for n in context.selected_nodes
-            if getattr(n, "node_tree", None) and not n.node_tree.is_editable
+            n.node_tree for n in context.selected_nodes if getattr(n, "node_tree", None) and not n.node_tree.is_editable
         )
 
         for node_tree in node_trees:
@@ -272,9 +250,7 @@ class NODE_OT_multiple_make_local(Operator):
 
         refresh_ui(context)
 
-        self.report(
-            {"INFO"}, f"Created local copies of {len(node_trees)} linked nodegroups."
-        )
+        self.report({"INFO"}, f"Created local copies of {len(node_trees)} linked nodegroups.")
         return {"FINISHED"}
 
 
@@ -286,9 +262,7 @@ class NODE_OT_multiple_make_local_all(Operator):
     @classmethod
     @return_false_when(AttributeError)
     def poll(cls, context):
-        editable_groups = tuple(
-            tree for tree in context.blend_data.node_groups if not tree.is_editable
-        )
+        editable_groups = tuple(tree for tree in context.blend_data.node_groups if not tree.is_editable)
         return len(editable_groups) > 0
 
     @staticmethod
@@ -310,11 +284,7 @@ class NODE_OT_multiple_make_local_all(Operator):
         #        node_groups.remove(group)
 
     def make_local(self, nodes):
-        node_trees = tuple(
-            n.node_tree
-            for n in nodes
-            if getattr(n, "node_tree", None) and not n.node_tree.is_editable
-        )
+        node_trees = tuple(n.node_tree for n in nodes if getattr(n, "node_tree", None) and not n.node_tree.is_editable)
 
         for node_tree in node_trees:
             node_tree.make_local()
@@ -327,9 +297,7 @@ class NODE_OT_multiple_make_local_all(Operator):
         self.remove_duplicate_groups()
         refresh_ui(context)
 
-        self.report(
-            {"INFO"}, f"Created local copies of {len(node_trees)} linked nodegroups."
-        )
+        self.report({"INFO"}, f"Created local copies of {len(node_trees)} linked nodegroups.")
         return {"FINISHED"}
 
 
@@ -384,9 +352,7 @@ class NODE_OT_clean_data_block_defaults(Operator):
     @classmethod
     def poll(cls, context):
         tree = context.space_data.edit_tree
-        return (
-            len(utils.get_data_block_defaults(tree, in_out="BOTH", as_tuple=True)) > 0
-        )
+        return len(utils.get_data_block_defaults(tree, in_out="BOTH", as_tuple=True)) > 0
 
     def execute(self, context):
         tree = context.space_data.edit_tree
@@ -427,10 +393,7 @@ class NODE_OT_merge_reroutes_to_switch(Operator):
 
     @classmethod
     def poll(cls, context):
-        return (
-            all(n.bl_idname == "NodeReroute" for n in context.selected_nodes)
-            and context.selected_nodes
-        )
+        return all(n.bl_idname == "NodeReroute" for n in context.selected_nodes) and context.selected_nodes
 
     @staticmethod
     def zigzag(seq, groups):
@@ -487,9 +450,7 @@ class NODE_OT_merge_reroutes_to_switch(Operator):
         return switch
 
     def execute(self, context):
-        reroutes = tuple(
-            n for n in context.selected_nodes if n.bl_idname == "NodeReroute"
-        )
+        reroutes = tuple(n for n in context.selected_nodes if n.bl_idname == "NodeReroute")
         prefs = utils.fetch_user_preferences()
 
         func = getattr(self, prefs.reroute_merge_type.lower())
@@ -502,11 +463,7 @@ class NODE_OT_merge_reroutes_to_switch(Operator):
 
             switches = []
             for group in reroute_groups:
-                switches.append(
-                    self.switch_from_reroutes(
-                        tree, group, switch_type=prefs.switch_type
-                    )
-                )
+                switches.append(self.switch_from_reroutes(tree, group, switch_type=prefs.switch_type))
 
         return {"FINISHED"}
 
@@ -613,9 +570,7 @@ class NODE_OT_menu_switch_to_enum(Operator):
 
     @classmethod
     def poll(cls, context):
-        return (
-            getattr(context.active_node, "bl_idname", None) == "GeometryNodeMenuSwitch"
-        )
+        return getattr(context.active_node, "bl_idname", None) == "GeometryNodeMenuSwitch"
 
     @staticmethod
     def transfer_menu_switch_items(source, target):
@@ -666,12 +621,8 @@ class NODE_OT_menu_switch_to_enum(Operator):
         self.convert_to_enum_switch(new_switch)
 
         group_sockets = internal_tree.interface
-        menu_socket = group_sockets.new_socket(
-            self.group_name, in_out="INPUT", socket_type="NodeSocketMenu"
-        )
-        output_socket = group_sockets.new_socket(
-            "Output", in_out="OUTPUT", socket_type="NodeSocketInt"
-        )
+        menu_socket = group_sockets.new_socket(self.group_name, in_out="INPUT", socket_type="NodeSocketMenu")
+        output_socket = group_sockets.new_socket("Output", in_out="OUTPUT", socket_type="NodeSocketInt")
 
         # menu_socket.default_value = new_switch.inputs[0].default_value
 
@@ -692,12 +643,8 @@ class NODE_OT_menu_switch_to_enum(Operator):
             index_switch_items.new()
 
         # Transfer Links and properties
-        utils.transfer_properties(
-            old_switch, group_node, props=["parent", "width", "location", "label"]
-        )
-        utils.transfer_properties(
-            old_switch, index_switch, props=["parent", "location", "data_type"]
-        )
+        utils.transfer_properties(old_switch, group_node, props=["parent", "width", "location", "label"])
+        utils.transfer_properties(old_switch, index_switch, props=["parent", "location", "data_type"])
         utils.transfer_node_links(tree, old_switch.inputs[0], group_node.inputs[0])
         utils.transfer_node_links(tree, old_switch.outputs[0], index_switch.outputs[0])
         for source, target in zip(old_switch.inputs[1:-1], index_switch.inputs[1:-1]):
@@ -719,9 +666,7 @@ class NODE_OT_menu_switch_to_enum(Operator):
         return {"FINISHED"}
 
     def invoke(self, context, event):
-        return context.window_manager.invoke_props_dialog(
-            self, title="Create Enum Group"
-        )
+        return context.window_manager.invoke_props_dialog(self, title="Create Enum Group")
 
 
 class NodeOperatorBaseclass:
@@ -744,9 +689,7 @@ class NODE_OT_split_group_input(NodeOperatorBaseclass, Operator):
 
     group_input_idname = "NodeGroupInput"
 
-    split_by: EnumProperty(
-        name="Split By", items=(("SOCKETS", "Sockets", ""), ("LINKS", "Links", ""))
-    )
+    split_by: EnumProperty(name="Split By", items=(("SOCKETS", "Sockets", ""), ("LINKS", "Links", "")))
 
     @staticmethod
     def is_group_input(node):
@@ -776,9 +719,7 @@ class NODE_OT_split_group_input(NodeOperatorBaseclass, Operator):
                 # Since this is a newly added node, all location/dimension values are (0.0, 0.0)
                 # But since the sizes of the nodes in these contexts are identical, they can be precalculated
                 node_pos_minus_socket_pos = Vector((-140.0 - padding, 35.0))
-                node.location = (
-                    utils.get_socket_location(to_socket) + node_pos_minus_socket_pos
-                )
+                node.location = utils.get_socket_location(to_socket) + node_pos_minus_socket_pos
 
     def execute(self, context):
         tree = utils.fetch_active_nodetree(context)
@@ -789,10 +730,7 @@ class NODE_OT_split_group_input(NodeOperatorBaseclass, Operator):
         replace_selection = True
         if replace_selection:
             for node in selected_nodes:
-                if (
-                    not self.is_group_input(node)
-                    or len(tuple(filter(self.is_valid_socket, node.outputs))) > 1
-                ):
+                if not self.is_group_input(node) or len(tuple(filter(self.is_valid_socket, node.outputs))) > 1:
                     node.select = False
 
         for old_node in group_inputs:
@@ -823,9 +761,7 @@ class NODE_OT_split_group_input(NodeOperatorBaseclass, Operator):
 
                 if added_nodes:
                     utils.arrange_along_column(added_nodes, spacing=20)
-                    utils.align_by_bounding_box(
-                        target_nodes=[old_node], nodes_to_move=added_nodes
-                    )
+                    utils.align_by_bounding_box(target_nodes=[old_node], nodes_to_move=added_nodes)
 
                 tree.nodes.remove(old_node)
 
@@ -839,15 +775,11 @@ class NODE_OT_split_group_input(NodeOperatorBaseclass, Operator):
                     if (not self.is_valid_socket(old_socket)) or (not old_socket.links):
                         continue
 
-                    for link in sorted(
-                        old_socket.links, key=lambda x: -x.to_node.location.y
-                    ):
+                    for link in sorted(old_socket.links, key=lambda x: -x.to_node.location.y):
                         new_node = tree.nodes.new(self.group_input_idname)
                         new_node.width = old_node.width
                         new_node.label = old_node.label
-                        new_node_sockets = filter(
-                            self.is_valid_socket, new_node.outputs
-                        )
+                        new_node_sockets = filter(self.is_valid_socket, new_node.outputs)
 
                         for soc in new_node_sockets:
                             soc.hide = True
@@ -927,9 +859,7 @@ class NODE_OT_merge_group_input(NodeOperatorBaseclass, Operator):
         tree.nodes.active = new_node
 
         for old_node in group_inputs:
-            for index, old_socket in filter(
-                lambda x: self.is_valid_socket(x[1]), enumerate(old_node.outputs)
-            ):
+            for index, old_socket in filter(lambda x: self.is_valid_socket(x[1]), enumerate(old_node.outputs)):
                 new_socket = new_node.outputs[index]
                 new_socket.hide = old_socket.hide
 
@@ -984,9 +914,7 @@ class NODE_OT_batch_replace_group(Operator):
     def execute(self, context):
         wm = context.window_manager
 
-        group_nodes = tuple(
-            n for n in context.selected_nodes if getattr(n, "node_tree", None)
-        )
+        group_nodes = tuple(n for n in context.selected_nodes if getattr(n, "node_tree", None))
 
         for node in group_nodes:
             node.node_tree = wm.nodegroup_to_replace

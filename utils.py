@@ -46,7 +46,7 @@ def extend_to_return_tuple(func):
 # Decorator for allowing poll functions to safely return False
 # should they encounter a specific kind of Exception
 def return_false_when(*args, **_):
-    exceptions = *args,
+    exceptions = (*args,)
 
     def decorator(poll):
         @wraps(poll)
@@ -55,8 +55,9 @@ def return_false_when(*args, **_):
                 return poll(self, context)
             except exceptions:
                 return False
-            
+
         return wrapper
+
     return decorator
 
 
@@ -83,11 +84,7 @@ def get_width(node):
 
 
 def group_input_dimensions(node):
-    visible_outputs = tuple(
-        soc
-        for soc in node.outputs
-        if not (soc.hide or isinstance(soc, NodeSocketVirtual))
-    )
+    visible_outputs = tuple(soc for soc in node.outputs if not (soc.hide or isinstance(soc, NodeSocketVirtual)))
     height = 50 + (22 * len(visible_outputs))
 
     return node.width, height
@@ -247,9 +244,7 @@ def arrange_along_column(nodes, spacing):
         return a - (get_height(b) + spacing)
 
     first_node = next(iter(nodes))
-    positions = itertools.accumulate(
-        nodes, func=spacing_func, initial=get_height(first_node)
-    )
+    positions = itertools.accumulate(nodes, func=spacing_func, initial=get_height(first_node))
 
     for node, pos in zip(nodes, positions):
         node.location.y = pos

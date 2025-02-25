@@ -8,9 +8,7 @@ import itertools
 from rna_keymap_ui import _indented_layout
 
 
-def draw_bool_prop_icon(
-    layout, data, property_name, icon_true, icon_false, emboss=False
-):
+def draw_bool_prop_icon(layout, data, property_name, icon_true, icon_false, emboss=False):
     icon = icon_true if getattr(data, property_name) else icon_false
     layout.prop(data, property_name, icon_only=True, icon=icon, emboss=emboss)
 
@@ -33,9 +31,7 @@ def collapsible_row(layout, data, property_name, text, icon="NONE"):
     toggle_state = getattr(data, property_name)
 
     if toggle_state:
-        row.prop(
-            data, property_name, icon_only=True, icon="DOWNARROW_HLT", emboss=False
-        )
+        row.prop(data, property_name, icon_only=True, icon="DOWNARROW_HLT", emboss=False)
     else:
         row.prop(data, property_name, icon_only=True, icon="RIGHTARROW", emboss=False)
 
@@ -74,7 +70,7 @@ class NODE_PT_nodegroup_names_and_descriptions(Panel):
     @classmethod
     @return_false_when(AttributeError)
     def poll(cls, context):
-        return (context.active_node.select and context.active_node.node_tree is not None)
+        return context.active_node.select and context.active_node.node_tree is not None
 
     def draw(self, context):
         layout = self.layout
@@ -113,9 +109,7 @@ class NODE_PT_nodegroup_names_and_descriptions(Panel):
                         else:
                             corresponding_socket = active_node.outputs[i]
 
-                        row.template_node_socket(
-                            color=corresponding_socket.draw_color_simple()
-                        )
+                        row.template_node_socket(color=corresponding_socket.draw_color_simple())
                         row.prop(item, "name", icon_only=True)
                         col2.prop(item, "description", icon_only=True)
 
@@ -131,10 +125,7 @@ class NODE_PT_menu_switch_all_descriptions(Panel):
     @classmethod
     @return_false_when(AttributeError)
     def poll(cls, context):
-        return (
-            context.active_node.bl_idname == "GeometryNodeMenuSwitch"
-            and context.active_node.select
-        )
+        return context.active_node.bl_idname == "GeometryNodeMenuSwitch" and context.active_node.select
 
     def draw(self, context):
         layout = self.layout
@@ -205,19 +196,13 @@ class NODE_PT_node_info(Panel):
             size = "None"
             dimensions = "None"
 
-        prop_info = list(
-            (prop_name, str(getattr(active_node, prop_name))) for prop_name in props
-        )
-        prop_info.extend(
-            [("size", size), ("dimensions", dimensions), ("location", location)]
-        )
+        prop_info = list((prop_name, str(getattr(active_node, prop_name))) for prop_name in props)
+        prop_info.extend([("size", size), ("dimensions", dimensions), ("location", location)])
 
         for prop, prop_value in prop_info:
             col1.label(text=prop)
             col2.label(text=prop_value)
-            col3.operator(
-                "node.copy_to_clipboard", text="", icon="COPYDOWN"
-            ).attribute = prop_value
+            col3.operator("node.copy_to_clipboard", text="", icon="COPYDOWN").attribute = prop_value
 
 
 class NODE_PT_node_coordinates(Panel):
@@ -318,9 +303,7 @@ class NODE_PT_node_cleanup(Panel):
 
                 row = col2.row(align=True)
                 row.alignment = "LEFT"
-                draw_bool_prop_icon(
-                    row, link, "is_muted", icon_true="PANEL_CLOSE", icon_false="FORWARD"
-                )
+                draw_bool_prop_icon(row, link, "is_muted", icon_true="PANEL_CLOSE", icon_false="FORWARD")
 
                 row.template_node_socket(color=link.to_socket.draw_color_simple())
                 row.label(text=f"{link.to_node.bl_label} ({link.to_socket.name})")
@@ -370,9 +353,7 @@ class NODE_PT_node_cleanup(Panel):
 
                 row = col2.row(align=True)
                 row.alignment = "LEFT"
-                draw_bool_prop_icon(
-                    row, link, "is_muted", icon_true="PANEL_CLOSE", icon_false="FORWARD"
-                )
+                draw_bool_prop_icon(row, link, "is_muted", icon_true="PANEL_CLOSE", icon_false="FORWARD")
                 draw_data_block(row, data_block)
 
     @staticmethod
@@ -442,17 +423,13 @@ class NODE_PT_node_cleanup(Panel):
         prefs = fetch_user_preferences()
         tree = context.space_data.edit_tree
 
-        if collapsible_row(
-            layout, prefs, "show_invisible_links", text="Invisible Links"
-        ):
+        if collapsible_row(layout, prefs, "show_invisible_links", text="Invisible Links"):
             self.draw_invisible_links(layout, context)
         layout.operator("node.clean_invisible_links")
 
         # Only GeometryNodeTrees support data-block sockets so skip for other node tree types
         if tree.bl_idname == "GeometryNodeTree":
-            if collapsible_row(
-                layout, prefs, "show_hidden_data_blocks", text="Hidden Data-Blocks"
-            ):
+            if collapsible_row(layout, prefs, "show_hidden_data_blocks", text="Hidden Data-Blocks"):
                 self.draw_uncleared_data_blocks(layout, context)
             layout.operator("node.clean_hidden_data_blocks")
 
@@ -491,9 +468,7 @@ class NODE_PT_object_data_selector(Panel):
 
         # layout.prop(node_tree, "test_object_prop", text='', icon='LIGHT')
         # layout.prop(node_tree, "test_object_prop", text='')
-        layout.prop_search(
-            node_tree, "test_object_prop", context.scene, "objects", text=""
-        )
+        layout.prop_search(node_tree, "test_object_prop", context.scene, "objects", text="")
 
 
 def data_selector_callback(self, context):
@@ -560,9 +535,7 @@ class NODE_PT_group_inputs(Panel):
 
         layout.operator("node.merge_group_input")
         row = layout.row(align=True)
-        row.operator(
-            "node.split_group_input", text="Split by Sockets"
-        ).split_by = "SOCKETS"
+        row.operator("node.split_group_input", text="Split by Sockets").split_by = "SOCKETS"
         row.operator("node.split_group_input", text="Split by Links").split_by = "LINKS"
 
 
@@ -625,10 +598,7 @@ def replace_nodegroup_poll(self, object):
     return (
         group.bl_idname == tree.bl_idname
         and not group.contains_tree(tree)
-        and (
-            not group.name.startswith(".")
-            or fetch_user_preferences("show_hidden_nodegroups")
-        )
+        and (not group.name.startswith(".") or fetch_user_preferences("show_hidden_nodegroups"))
     )
 
 
@@ -640,9 +610,7 @@ def register():
     else:
         if hasattr(NODE_PT_menu_switch_all_descriptions, "bl_category"):
             delattr(NODE_PT_menu_switch_all_descriptions, "bl_category")
-        NODE_PT_menu_switch_all_descriptions.bl_parent_id = (
-            "NODE_PT_active_node_properties"
-        )
+        NODE_PT_menu_switch_all_descriptions.bl_parent_id = "NODE_PT_active_node_properties"
 
     for cls in classes:
         bpy.utils.register_class(cls)
@@ -652,9 +620,7 @@ def register():
 
     bpy.types.NODE_HT_header.append(draw_personal_settings)
 
-    bpy.types.NodeTree.test_object_prop = bpy.props.StringProperty(
-        update=data_selector_callback
-    )
+    bpy.types.NodeTree.test_object_prop = bpy.props.StringProperty(update=data_selector_callback)
 
     bpy.types.WindowManager.nodegroup_to_replace = bpy.props.PointerProperty(
         name="Group to Replace",

@@ -77,9 +77,7 @@ class KeymapStructure:
             return []
 
     def draw_items(self):
-        return itertools.zip_longest(
-            self.structure.keys(), self.structure.values(), self.ui_properties
-        )
+        return itertools.zip_longest(self.structure.keys(), self.structure.values(), self.ui_properties)
 
     @property
     def keymap_items(self) -> Iterator[KeymapItemDef]:
@@ -98,9 +96,7 @@ class KeymapStructure:
 
     @property
     def keymap_defs(self):
-        kmi_defs = sorted(
-            (kmi for kmi in self.keymap_items), key=self.fetch_keymap_data
-        )
+        kmi_defs = sorted((kmi for kmi in self.keymap_items), key=self.fetch_keymap_data)
         return itertools.groupby(kmi_defs, key=self.fetch_keymap_data)
 
     def register(self):
@@ -160,9 +156,7 @@ class KeymapLayout:
         )
 
         for prop_name in self.structure.ui_properties:
-            pref_properties[prop_name] = BoolProperty(
-                name="Show/Hide Items", default=True
-            )
+            pref_properties[prop_name] = BoolProperty(name="Show/Hide Items", default=True)
 
     @property
     def ui_properties(self) -> Iterator[str]:
@@ -189,21 +183,15 @@ class KeymapLayout:
         kc = context.window_manager.keyconfigs.user
         display_mode = self.structure.display_mode
 
-        if not collapsible_row(
-            col, pref_data, "show_keymaps", text="Keymap List:", icon="KEYINGSET"
-        ):
+        if not collapsible_row(col, pref_data, "show_keymaps", text="Keymap List:", icon="KEYINGSET"):
             return
 
         if display_mode == "NESTED":
             for km_group, kmi_defs, ui_prop in self.structure.draw_items():
-                get_kmi_l = tuple(
-                    find_matching_keymaps(keyconfig=kc, keymap_item_defs=kmi_defs)
-                )
+                get_kmi_l = tuple(find_matching_keymaps(keyconfig=kc, keymap_item_defs=kmi_defs))
                 category_header = _indented_layout(col, indent_level)
 
-                if collapsible_row(
-                    category_header, pref_data, ui_prop, text=km_group, show_dots=True
-                ):
+                if collapsible_row(category_header, pref_data, ui_prop, text=km_group, show_dots=True):
                     for km, kmi in get_kmi_l:
                         col.context_pointer_set("keymap", km)
                         self.draw_kmi([], kc, km, kmi, col, level=indent_level + 1)
@@ -213,9 +201,7 @@ class KeymapLayout:
 
         elif display_mode == "FLAT":
             for km_group, kmi_defs, ui_prop in self.structure.draw_items():
-                get_kmi_l = tuple(
-                    find_matching_keymaps(keyconfig=kc, keymap_item_defs=kmi_defs)
-                )
+                get_kmi_l = tuple(find_matching_keymaps(keyconfig=kc, keymap_item_defs=kmi_defs))
 
                 for km, kmi in get_kmi_l:
                     col.context_pointer_set("keymap", km)
@@ -265,14 +251,10 @@ class KeymapLayout:
             row.label()
 
         if (not kmi.is_user_defined) and kmi.is_user_modified:
-            row.operator(
-                "preferences.keyitem_restore", text="", icon="BACK"
-            ).item_id = kmi.id
+            row.operator("preferences.keyitem_restore", text="", icon="BACK").item_id = kmi.id
         else:
             remove_icon = "TRACKING_CLEAR_BACKWARDS" if kmi.is_user_defined else "X"
-            row.operator(
-                "preferences.keyitem_remove", text="", icon=remove_icon
-            ).item_id = kmi.id
+            row.operator("preferences.keyitem_remove", text="", icon=remove_icon).item_id = kmi.id
 
     def draw_kmi(self, display_keymaps, kc, km, kmi, layout, level):
         col = _indented_layout(layout, level)
@@ -351,10 +333,7 @@ def find_matching_keymaps(keyconfig, keymap_item_defs):
                     if properties is None:
                         yield (km_con, kmi_con)
                     else:
-                        properties_match = all(
-                            v == getattr(kmi_con.properties, k)
-                            for k, v in properties.items()
-                        )
+                        properties_match = all(v == getattr(kmi_con.properties, k) for k, v in properties.items())
 
                         if properties_match:
                             yield (km_con, kmi_con)
@@ -368,9 +347,7 @@ else:
     CLOSE_ICON = "DISCLOSURE_TRI_RIGHT"
 
 
-def collapsible_row(
-    layout, data, property_name, text, icon="NONE", *, show_dots=False
-) -> bool:
+def collapsible_row(layout, data, property_name, text, icon="NONE", *, show_dots=False) -> bool:
     row = layout.row(align=True)
     toggle_state = getattr(data, property_name)
 
