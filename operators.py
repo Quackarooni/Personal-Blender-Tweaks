@@ -147,16 +147,16 @@ class NODE_OT_multiple_asset_mark(Operator):
     @classmethod
     @return_false_when(AttributeError)
     def poll(cls, context):
-        group_nodes = tuple(n for n in context.selected_nodes if getattr(n, "node_tree", None))
+        group_nodes = utils.filter_group_nodes(context.selected_nodes, as_tuple=True)
         return len(group_nodes) > 0
 
     def execute(self, context):
-        node_trees = tuple(n.node_tree for n in context.selected_nodes if getattr(n, "node_tree", None))
+        group_nodes = utils.filter_group_nodes(context.selected_nodes, as_tuple=True)
 
-        for node_tree in node_trees:
-            node_tree.asset_mark()
+        for node in group_nodes:
+            node.node_tree.asset_mark()
 
-        self.report({"INFO"}, f"Marked {len(node_trees)} nodegroups as assets.")
+        self.report({"INFO"}, f"Marked {len(group_nodes)} nodegroups as assets.")
         return {"FINISHED"}
 
 
@@ -168,16 +168,16 @@ class NODE_OT_multiple_asset_clear(Operator):
     @classmethod
     @return_false_when(AttributeError)
     def poll(cls, context):
-        group_nodes = tuple(n for n in context.selected_nodes if getattr(n, "node_tree", None))
+        group_nodes = utils.filter_group_nodes(context.selected_nodes, as_tuple=True)
         return len(group_nodes) > 0
 
     def execute(self, context):
-        node_trees = tuple(n.node_tree for n in context.selected_nodes if getattr(n, "node_tree", None))
+        group_nodes = utils.filter_group_nodes(context.selected_nodes, as_tuple=True)
 
-        for node_tree in node_trees:
-            node_tree.asset_clear()
+        for node in group_nodes:
+            node.node_tree.asset_clear()
 
-        self.report({"INFO"}, f"Cleared {len(node_trees)} nodegroups as assets.")
+        self.report({"INFO"}, f"Cleared {len(group_nodes)} nodegroups as assets.")
         return {"FINISHED"}
 
 
@@ -189,18 +189,18 @@ class NODE_OT_multiple_fake_user_set(Operator):
     @classmethod
     @return_false_when(AttributeError)
     def poll(cls, context):
-        group_nodes = tuple(n for n in context.selected_nodes if getattr(n, "node_tree", None))
+        group_nodes = utils.filter_group_nodes(context.selected_nodes, as_tuple=True)
         return len(group_nodes) > 0
 
     def execute(self, context):
-        node_trees = tuple(n.node_tree for n in context.selected_nodes if getattr(n, "node_tree", None))
+        group_nodes = utils.filter_group_nodes(context.selected_nodes, as_tuple=True)
 
-        for node_tree in node_trees:
-            node_tree.use_fake_user = True
+        for node in group_nodes:
+            node.node_tree.use_fake_user = True
 
         refresh_ui(context)
 
-        self.report({"INFO"}, f"Set {len(node_trees)} nodegroups as fake users.")
+        self.report({"INFO"}, f"Set {len(group_nodes)} nodegroups as fake users.")
         return {"FINISHED"}
 
 
@@ -212,18 +212,18 @@ class NODE_OT_multiple_fake_user_clear(Operator):
     @classmethod
     @return_false_when(AttributeError)
     def poll(cls, context):
-        group_nodes = tuple(n for n in context.selected_nodes if getattr(n, "node_tree", None))
+        group_nodes = utils.filter_group_nodes(context.selected_nodes, as_tuple=True)
         return len(group_nodes) > 0
 
     def execute(self, context):
-        node_trees = tuple(n.node_tree for n in context.selected_nodes if getattr(n, "node_tree", None))
+        group_nodes = utils.filter_group_nodes(context.selected_nodes, as_tuple=True)
 
-        for node_tree in node_trees:
-            node_tree.use_fake_user = False
+        for node in group_nodes:
+            node.node_tree.use_fake_user = False
 
         refresh_ui(context)
 
-        self.report({"INFO"}, f"Cleared {len(node_trees)} nodegroups as fake users.")
+        self.report({"INFO"}, f"Cleared {len(group_nodes)} nodegroups as fake users.")
         return {"FINISHED"}
 
 
@@ -235,22 +235,20 @@ class NODE_OT_multiple_make_local(Operator):
     @classmethod
     @return_false_when(AttributeError)
     def poll(cls, context):
-        editable_groups = tuple(
-            n for n in context.selected_nodes if getattr(n, "node_tree", None) and not n.node_tree.is_editable
-        )
-        return len(editable_groups) > 0
+        group_nodes = utils.filter_group_nodes(context.selected_nodes)
+        asset_groups = tuple(n for n in group_nodes if not n.node_tree.is_editable)
+        return len(asset_groups) > 0
 
     def execute(self, context):
-        node_trees = tuple(
-            n.node_tree for n in context.selected_nodes if getattr(n, "node_tree", None) and not n.node_tree.is_editable
-        )
+        group_nodes = utils.filter_group_nodes(context.selected_nodes)
+        asset_groups = tuple(n for n in group_nodes if not n.node_tree.is_editable)
 
-        for node_tree in node_trees:
-            node_tree.make_local()
+        for node in asset_groups:
+            node.node_tree.make_local()
 
         refresh_ui(context)
 
-        self.report({"INFO"}, f"Created local copies of {len(node_trees)} linked nodegroups.")
+        self.report({"INFO"}, f"Created local copies of {len(asset_groups)} linked nodegroups.")
         return {"FINISHED"}
 
 
@@ -262,8 +260,9 @@ class NODE_OT_multiple_make_local_all(Operator):
     @classmethod
     @return_false_when(AttributeError)
     def poll(cls, context):
-        editable_groups = tuple(tree for tree in context.blend_data.node_groups if not tree.is_editable)
-        return len(editable_groups) > 0
+        group_nodes = utils.filter_group_nodes(context.selected_nodes)
+        asset_groups = tuple(n for n in group_nodes if not n.node_tree.is_editable)
+        return len(asset_groups) > 0
 
     @staticmethod
     def remove_duplicate_groups():
@@ -277,18 +276,14 @@ class NODE_OT_multiple_make_local_all(Operator):
             else:
                 group.name = unduped_name
 
-        # for group in added_groups:
-        #    split_name, *_ = re.split("\.\d+$", group.name)
-        #
-        #    if len(_) > 0 and split_name in bpy.data.node_groups:
-        #        node_groups.remove(group)
-
     def make_local(self, nodes):
-        node_trees = tuple(n.node_tree for n in nodes if getattr(n, "node_tree", None) and not n.node_tree.is_editable)
+        group_nodes = utils.filter_group_nodes(nodes)
+        asset_groups = tuple(n for n in group_nodes if not n.node_tree.is_editable)
 
-        for node_tree in node_trees:
-            node_tree.make_local()
-            self.make_local(node_tree.nodes)
+        for node in asset_groups:
+            group = node.node_tree
+            group.make_local()
+            self.make_local(group.nodes)
 
     def execute(self, context):
         node_trees = tuple(tree for tree in context.blend_data.node_groups)
@@ -913,8 +908,7 @@ class NODE_OT_batch_replace_group(Operator):
 
     def execute(self, context):
         wm = context.window_manager
-
-        group_nodes = tuple(n for n in context.selected_nodes if getattr(n, "node_tree", None))
+        group_nodes = utils.filter_group_nodes(context.selected_nodes, as_tuple=True)
 
         for node in group_nodes:
             node.node_tree = wm.nodegroup_to_replace

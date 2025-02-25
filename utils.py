@@ -217,6 +217,13 @@ def get_data_block_defaults(tree, *, in_out):
                 yield socket, data_block
 
 
+@extend_to_return_tuple
+def filter_group_nodes(nodes):
+    for node in nodes:
+        if getattr(node, "node_tree", None):
+            yield node
+
+
 def fetch_active_nodetree(context):
     edit_tree = context.space_data.edit_tree
     node_tree = context.space_data.node_tree
