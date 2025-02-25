@@ -152,12 +152,11 @@ class NODE_OT_multiple_asset_mark(Operator):
     @classmethod
     def poll(cls, context):
         try:
-            return (
-                len(
-                    [n for n in context.selected_nodes if getattr(n, "node_tree", None)]
-                )
-                > 0
+            group_nodes = tuple(
+                n for n in context.selected_nodes if getattr(n, "node_tree", None)
             )
+            return len(group_nodes) > 0
+
         except AttributeError:
             return False
 
@@ -181,12 +180,11 @@ class NODE_OT_multiple_asset_clear(Operator):
     @classmethod
     def poll(cls, context):
         try:
-            return (
-                len(
-                    [n for n in context.selected_nodes if getattr(n, "node_tree", None)]
-                )
-                > 0
+            group_nodes = tuple(
+                n for n in context.selected_nodes if getattr(n, "node_tree", None)
             )
+            return len(group_nodes) > 0
+
         except AttributeError:
             return False
 
@@ -210,12 +208,11 @@ class NODE_OT_multiple_fake_user_set(Operator):
     @classmethod
     def poll(cls, context):
         try:
-            return (
-                len(
-                    [n for n in context.selected_nodes if getattr(n, "node_tree", None)]
-                )
-                > 0
+            group_nodes = tuple(
+                n for n in context.selected_nodes if getattr(n, "node_tree", None)
             )
+            return len(group_nodes) > 0
+
         except AttributeError:
             return False
 
@@ -241,12 +238,11 @@ class NODE_OT_multiple_fake_user_clear(Operator):
     @classmethod
     def poll(cls, context):
         try:
-            return (
-                len(
-                    [n for n in context.selected_nodes if getattr(n, "node_tree", None)]
-                )
-                > 0
+            group_nodes = tuple(
+                n for n in context.selected_nodes if getattr(n, "node_tree", None)
             )
+            return len(group_nodes) > 0
+
         except AttributeError:
             return False
 
@@ -272,18 +268,21 @@ class NODE_OT_multiple_make_local(Operator):
     @classmethod
     def poll(cls, context):
         try:
-            return (
-                len(
-                    [n for n in context.selected_nodes if getattr(n, "node_tree", None) and not n.node_tree.is_editable]
-                )
-                > 0
+            editable_groups = tuple(
+                n
+                for n in context.selected_nodes
+                if getattr(n, "node_tree", None) and not n.node_tree.is_editable
             )
+            return len(editable_groups) > 0
+
         except AttributeError:
             return False
 
     def execute(self, context):
         node_trees = tuple(
-            n.node_tree for n in context.selected_nodes if getattr(n, "node_tree", None) and not n.node_tree.is_editable
+            n.node_tree
+            for n in context.selected_nodes
+            if getattr(n, "node_tree", None) and not n.node_tree.is_editable
         )
 
         for node_tree in node_trees:
@@ -291,7 +290,9 @@ class NODE_OT_multiple_make_local(Operator):
 
         refresh_ui(context)
 
-        self.report({"INFO"}, f"Created local copies of {len(node_trees)} linked nodegroups.")
+        self.report(
+            {"INFO"}, f"Created local copies of {len(node_trees)} linked nodegroups."
+        )
         return {"FINISHED"}
 
 
@@ -303,10 +304,11 @@ class NODE_OT_multiple_make_local_all(Operator):
     @classmethod
     def poll(cls, context):
         try:
-            return (
-                len(tuple(tree for tree in context.blend_data.node_groups if not tree.is_editable))
-                > 0
+            editable_groups = tuple(
+                tree for tree in context.blend_data.node_groups if not tree.is_editable
             )
+            return len(editable_groups) > 0
+
         except AttributeError:
             return False
 
@@ -322,31 +324,33 @@ class NODE_OT_multiple_make_local_all(Operator):
             else:
                 group.name = unduped_name
 
-        #for group in added_groups:
+        # for group in added_groups:
         #    split_name, *_ = re.split("\.\d+$", group.name)
         #
         #    if len(_) > 0 and split_name in bpy.data.node_groups:
         #        node_groups.remove(group)
 
     def make_local(self, nodes):
-        node_trees = tuple(n.node_tree for n in nodes if getattr(n, "node_tree", None) and not n.node_tree.is_editable)
+        node_trees = tuple(
+            n.node_tree
+            for n in nodes
+            if getattr(n, "node_tree", None) and not n.node_tree.is_editable
+        )
 
         for node_tree in node_trees:
             node_tree.make_local()
             self.make_local(node_tree.nodes)
-        
-
 
     def execute(self, context):
-        node_trees = tuple(
-            tree for tree in context.blend_data.node_groups
-        )
+        node_trees = tuple(tree for tree in context.blend_data.node_groups)
 
         self.make_local(context.space_data.edit_tree.nodes)
         self.remove_duplicate_groups()
         refresh_ui(context)
 
-        self.report({"INFO"}, f"Created local copies of {len(node_trees)} linked nodegroups.")
+        self.report(
+            {"INFO"}, f"Created local copies of {len(node_trees)} linked nodegroups."
+        )
         return {"FINISHED"}
 
 
@@ -550,7 +554,7 @@ class NODE_OT_convert_switch_type(Operator):
         if node.bl_idname == "GeometryNodeMenuSwitch":
             switch = tree.nodes.new("GeometryNodeIndexSwitch")
             parent = node.parent
-            node.parent = None            
+            node.parent = None
             switch.location = node.location
             switch.parent = parent
             switch.width = node.width
@@ -579,7 +583,7 @@ class NODE_OT_convert_switch_type(Operator):
         elif node.bl_idname == "GeometryNodeIndexSwitch":
             switch = tree.nodes.new("GeometryNodeMenuSwitch")
             parent = node.parent
-            node.parent = None            
+            node.parent = None
             switch.location = node.location
             switch.parent = parent
             switch.width = node.width
@@ -608,15 +612,15 @@ class NODE_OT_convert_switch_type(Operator):
             raise ValueError
 
         return {"FINISHED"}
-    
+
 
 class NODE_OT_menu_switch_to_enum(Operator):
     bl_idname = "node.menu_switch_to_enum"
     bl_label = "Menu Switch to Enum"
     bl_options = {"REGISTER", "UNDO"}
 
-    group_name: StringProperty(name="", default="", options={'SKIP_SAVE'})
-    is_hidden: BoolProperty(name="Is Hidden", default=True, options={'SKIP_SAVE'})
+    group_name: StringProperty(name="", default="", options={"SKIP_SAVE"})
+    is_hidden: BoolProperty(name="Is Hidden", default=True, options={"SKIP_SAVE"})
 
     def draw(self, context):
         layout = self.layout
@@ -633,7 +637,9 @@ class NODE_OT_menu_switch_to_enum(Operator):
 
     @classmethod
     def poll(cls, context):
-        return getattr(context.active_node, "bl_idname", None) == "GeometryNodeMenuSwitch"
+        return (
+            getattr(context.active_node, "bl_idname", None) == "GeometryNodeMenuSwitch"
+        )
 
     @staticmethod
     def transfer_menu_switch_items(source, target):
@@ -663,7 +669,7 @@ class NODE_OT_menu_switch_to_enum(Operator):
         group_output.location = (90.0, 93.5)
 
         return group_input, group_output, new_switch
-    
+
     def generate_group_name(self):
         group_name = f"ENUM_{self.group_name}"
         if self.is_hidden:
@@ -672,7 +678,7 @@ class NODE_OT_menu_switch_to_enum(Operator):
         return group_name
 
     def execute(self, context):
-        bpy.ops.node.select_all(action='DESELECT')
+        bpy.ops.node.select_all(action="DESELECT")
 
         old_switch = context.active_node
         groups = context.blend_data.node_groups
@@ -684,10 +690,14 @@ class NODE_OT_menu_switch_to_enum(Operator):
         self.convert_to_enum_switch(new_switch)
 
         group_sockets = internal_tree.interface
-        menu_socket = group_sockets.new_socket(self.group_name, in_out="INPUT", socket_type="NodeSocketMenu")
-        output_socket = group_sockets.new_socket("Output", in_out="OUTPUT", socket_type="NodeSocketInt")
+        menu_socket = group_sockets.new_socket(
+            self.group_name, in_out="INPUT", socket_type="NodeSocketMenu"
+        )
+        output_socket = group_sockets.new_socket(
+            "Output", in_out="OUTPUT", socket_type="NodeSocketInt"
+        )
 
-        #menu_socket.default_value = new_switch.inputs[0].default_value
+        # menu_socket.default_value = new_switch.inputs[0].default_value
 
         internal_tree.links.new(group_input.outputs[0], new_switch.inputs[0])
         internal_tree.links.new(new_switch.outputs[0], group_output.inputs[0])
@@ -696,7 +706,7 @@ class NODE_OT_menu_switch_to_enum(Operator):
         group_node = tree.nodes.new("GeometryNodeGroup")
         group_node.node_tree = internal_tree
         group_node.inputs[0].default_value = new_switch.inputs[0].default_value
-        
+
         # Create index switch
         index_switch = tree.nodes.new("GeometryNodeIndexSwitch")
         index_switch_items = index_switch.index_switch_items
@@ -706,30 +716,36 @@ class NODE_OT_menu_switch_to_enum(Operator):
             index_switch_items.new()
 
         # Transfer Links and properties
-        utils.transfer_properties(old_switch, group_node, props=["parent", "width", "location", "label"])
-        utils.transfer_properties(old_switch, index_switch, props=["parent", "location", "data_type"])
+        utils.transfer_properties(
+            old_switch, group_node, props=["parent", "width", "location", "label"]
+        )
+        utils.transfer_properties(
+            old_switch, index_switch, props=["parent", "location", "data_type"]
+        )
         utils.transfer_node_links(tree, old_switch.inputs[0], group_node.inputs[0])
         utils.transfer_node_links(tree, old_switch.outputs[0], index_switch.outputs[0])
         for source, target in zip(old_switch.inputs[1:-1], index_switch.inputs[1:-1]):
             utils.transfer_node_links(tree, source, target)
             if hasattr(source, "default_value") and hasattr(target, "default_value"):
-                target.default_value = source.default_value 
+                target.default_value = source.default_value
 
         index_switch.location.x += group_node.width + 20
 
         # Center New Nodes on Old Switch
         total_width = index_switch.width + group_node.width + 20
         for node in (index_switch, group_node):
-            node.location.x -= total_width/2 - old_switch.width/2
+            node.location.x -= total_width / 2 - old_switch.width / 2
 
         tree.links.new(group_node.outputs[0], index_switch.inputs[0])
         tree.nodes.remove(old_switch)
         tree.nodes.active = group_node
 
         return {"FINISHED"}
-    
+
     def invoke(self, context, event):
-        return context.window_manager.invoke_props_dialog(self, title="Create Enum Group")
+        return context.window_manager.invoke_props_dialog(
+            self, title="Create Enum Group"
+        )
 
 
 class NodeOperatorBaseclass:
@@ -786,9 +802,10 @@ class NODE_OT_split_group_input(NodeOperatorBaseclass, Operator):
 
                 # Since this is a newly added node, all location/dimension values are (0.0, 0.0)
                 # But since the sizes of the nodes in these contexts are identical, they can be precalculated
-                node_pos_minus_socket_pos = Vector((-140.0 - padding, 35.0)) 
-                node.location = utils.get_socket_location(to_socket) + node_pos_minus_socket_pos
-
+                node_pos_minus_socket_pos = Vector((-140.0 - padding, 35.0))
+                node.location = (
+                    utils.get_socket_location(to_socket) + node_pos_minus_socket_pos
+                )
 
     def execute(self, context):
         tree = utils.fetch_active_nodetree(context)
@@ -836,7 +853,7 @@ class NODE_OT_split_group_input(NodeOperatorBaseclass, Operator):
                     utils.align_by_bounding_box(
                         target_nodes=[old_node], nodes_to_move=added_nodes
                     )
-                        
+
                 tree.nodes.remove(old_node)
 
             elif self.split_by == "LINKS":
@@ -872,11 +889,10 @@ class NODE_OT_split_group_input(NodeOperatorBaseclass, Operator):
                         added_nodes.append(new_node)
 
                 tree.nodes.remove(old_node)
-                
 
                 # TODO - Make this padding controllable by user preference
                 self.arrange_nodes(tree, added_links, padding=30)
-                        
+
             else:
                 raise ValueError
 
@@ -964,7 +980,7 @@ class NODE_OT_merge_group_input(NodeOperatorBaseclass, Operator):
             tree.nodes.remove(old_node)
 
         return {"FINISHED"}
-    
+
 
 class NODE_OT_batch_replace_group(Operator):
     bl_idname = "node.batch_replace_group"
@@ -981,15 +997,16 @@ class NODE_OT_batch_replace_group(Operator):
         if group is None:
             return False
 
-        is_valid_group = (group.bl_idname == tree.bl_idname and not group.contains_tree(tree))
+        is_valid_group = group.bl_idname == tree.bl_idname and not group.contains_tree(tree)
 
-        return all((
-            hasattr(active_node, "node_tree"),
-            active_node.select,
-            wm.nodegroup_to_replace is not None,
-            is_valid_group
-        ))
-        
+        return all(
+            (
+                hasattr(active_node, "node_tree"),
+                active_node.select,
+                wm.nodegroup_to_replace is not None,
+                is_valid_group,
+            )
+        )
 
     def execute(self, context):
         wm = context.window_manager
@@ -1002,7 +1019,7 @@ class NODE_OT_batch_replace_group(Operator):
             node.node_tree = wm.nodegroup_to_replace
 
         return {"FINISHED"}
-    
+
 
 class NODE_OT_convert_math_node(Operator):
     bl_idname = "node.convert_math_node"
@@ -1015,26 +1032,26 @@ class NODE_OT_convert_math_node(Operator):
             is_valid_node = getattr(node, "bl_idname", None) in {
                 "ShaderNodeMath",
                 "FunctionNodeIntegerMath",
-            } 
-            
+            }
+
             is_valid_operation = node.operation in (
-                'ADD', 
-                'SUBTRACT', 
-                'MULTIPLY', 
-                'DIVIDE', 
-                'MULTIPLY_ADD', 
-                'ABSOLUTE', 
-                'POWER', 
-                'MINIMUM',
-                'MAXIMUM', 
-                'SIGN', 
+                "ADD",
+                "SUBTRACT",
+                "MULTIPLY",
+                "DIVIDE",
+                "MULTIPLY_ADD",
+                "ABSOLUTE",
+                "POWER",
+                "MINIMUM",
+                "MAXIMUM",
+                "SIGN",
                 # TODO - Find a way to convert one int math node to two float math nodes for these operations
-                #'DIVIDE_ROUND', 
-                #'DIVIDE_FLOOR', 
-                #'DIVIDE_CEIL', 
-                'FLOORED_MODULO', 
-                'MODULO', 
-                )
+                #'DIVIDE_ROUND',
+                #'DIVIDE_FLOOR',
+                #'DIVIDE_CEIL',
+                "FLOORED_MODULO",
+                "MODULO",
+            )
 
             return is_valid_node and is_valid_operation
         except AttributeError:
@@ -1051,7 +1068,7 @@ class NODE_OT_convert_math_node(Operator):
         if node.bl_idname == "ShaderNodeMath":
             switch = tree.nodes.new("FunctionNodeIntegerMath")
             parent = node.parent
-            node.parent = None            
+            node.parent = None
             switch.location = node.location
             switch.parent = parent
 
@@ -1067,7 +1084,7 @@ class NODE_OT_convert_math_node(Operator):
                 if hasattr(new_sock, "default_value"):
                     new_sock.default_value = int(old_sock.default_value)
 
-            #TODO - For some reason .is_muted does not always propagate correctly, invesigate that
+            # TODO - For some reason .is_muted does not always propagate correctly, invesigate that
             for old_sock, new_sock in zip(node.outputs, switch.outputs):
                 for link in old_sock.links:
                     new_link = tree.links.new(new_sock, link.to_socket)
@@ -1079,7 +1096,7 @@ class NODE_OT_convert_math_node(Operator):
         elif node.bl_idname == "FunctionNodeIntegerMath":
             switch = tree.nodes.new("ShaderNodeMath")
             parent = node.parent
-            node.parent = None            
+            node.parent = None
             switch.location = node.location
             switch.parent = parent
             switch.hide = node.hide

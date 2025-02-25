@@ -186,9 +186,9 @@ def filter_hidden_data_blocks(links):
 @extend_to_return_tuple
 def get_data_block_defaults(tree, *, in_out):
     for socket in tree.interface.items_tree:
-        if socket.item_type == 'PANEL':
+        if socket.item_type == "PANEL":
             continue
-        
+
         # in_out_status = True if (in_out == 'BOTH') else socket.in_out == in_out
         # TODO - Add enums for selecting ('INPUT', 'OUTPUT', 'BOTH') and erroring at invalid inputs
         in_out_status = True if (in_out == "BOTH") else socket.in_out == in_out
@@ -335,7 +335,8 @@ def get_socket_location(sk):
     if (not sk.enabled) and (sk.hide):
         return Vector((0, 0))
 
-    return Vector(BNodeSocket.get_fields(sk).runtime.contents.location[:]) / bpy.context.preferences.view.ui_scale
+    socket_location = BNodeSocket.get_fields(sk).runtime.contents.location[:]
+    return Vector(socket_location) / bpy.context.preferences.view.ui_scale
 
 
 StructBase._init_structs()

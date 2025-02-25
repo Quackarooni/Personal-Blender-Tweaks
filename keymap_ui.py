@@ -9,7 +9,7 @@ from rna_keymap_ui import _indented_layout, draw_km
 
 
 def ui_property_name(name: str) -> str:
-    return f'show_keymaps_{name.strip().lower().replace(" ", "_")}'
+    return f"show_keymaps_{name.strip().lower().replace(' ', '_')}"
 
 
 @dataclass(frozen=True, slots=True)

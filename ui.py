@@ -221,11 +221,7 @@ class NODE_PT_node_info(Panel):
             (prop_name, str(getattr(active_node, prop_name))) for prop_name in props
         )
         prop_info.extend(
-            [
-                ("size", size),
-                ("dimensions", dimensions),
-                ("location", location)
-            ]
+            [("size", size), ("dimensions", dimensions), ("location", location)]
         )
 
         for prop, prop_value in prop_info:
@@ -619,7 +615,7 @@ if bpy.app.version >= (4, 3, 0):
         NODE_PT_reroutes_to_switch,
         NODE_PT_math_node_convert,
         NODE_PT_group_inputs,
-        NODE_PT_replace_group
+        NODE_PT_replace_group,
     )
 else:
     classes = (
@@ -633,7 +629,7 @@ else:
         NODE_PT_object_data_selector,
         NODE_PT_reroutes_to_switch,
         NODE_PT_group_inputs,
-        NODE_PT_replace_group
+        NODE_PT_replace_group,
     )
 
 
@@ -641,10 +637,14 @@ def replace_nodegroup_poll(self, object):
     tree = bpy.context.space_data.edit_tree
     group = object
 
-    return (group.bl_idname == tree.bl_idname and
-            not group.contains_tree(tree) and
-            (not group.name.startswith('.') or fetch_user_preferences("show_hidden_nodegroups"))
-            )
+    return (
+        group.bl_idname == tree.bl_idname
+        and not group.contains_tree(tree)
+        and (
+            not group.name.startswith(".")
+            or fetch_user_preferences("show_hidden_nodegroups")
+        )
+    )
 
 
 def register():
