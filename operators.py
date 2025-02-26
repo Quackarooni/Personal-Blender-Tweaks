@@ -600,14 +600,17 @@ class NODE_OT_menu_switch_to_enum(Operator):
         group_input, group_output, new_switch = self.init_internal_tree(internal_tree)
 
         self.transfer_menu_switch_items(old_switch, new_switch)
-        new_switch.inputs[0].default_value = old_switch.inputs[0].default_value
+        
+        try:
+            new_switch.inputs[0].default_value = old_switch.inputs[0].default_value
+        except TypeError:
+            new_switch.inputs[0].default_value = old_switch.enum_items[0].name
+
         self.convert_to_enum_switch(new_switch)
 
         group_sockets = internal_tree.interface
-        menu_socket = group_sockets.new_socket(self.group_name, in_out="INPUT", socket_type="NodeSocketMenu")
-        output_socket = group_sockets.new_socket("Output", in_out="OUTPUT", socket_type="NodeSocketInt")
-
-        # menu_socket.default_value = new_switch.inputs[0].default_value
+        group_sockets.new_socket(self.group_name, in_out="INPUT", socket_type="NodeSocketMenu")
+        group_sockets.new_socket("Output", in_out="OUTPUT", socket_type="NodeSocketInt")
 
         internal_tree.links.new(group_input.outputs[0], new_switch.inputs[0])
         internal_tree.links.new(new_switch.outputs[0], group_output.inputs[0])
