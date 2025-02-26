@@ -922,12 +922,13 @@ class NODE_OT_convert_math_node(Operator):
     bl_options = {"REGISTER", "UNDO"}
 
     @staticmethod
-    @return_false_when(AttributeError)
     def is_convertable(node):
         is_valid_node = getattr(node, "bl_idname", None) in {
             "ShaderNodeMath",
             "FunctionNodeIntegerMath",
         }
+        if not is_valid_node:
+            return False
 
         is_valid_operation = node.operation in (
             "ADD",
@@ -948,7 +949,7 @@ class NODE_OT_convert_math_node(Operator):
             "MODULO",
         )
 
-        return is_valid_node and is_valid_operation
+        return is_valid_operation
 
     @classmethod
     def poll(cls, context):
