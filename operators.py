@@ -481,15 +481,9 @@ class NODE_OT_convert_switch_type(Operator):
 
         if node.bl_idname == "GeometryNodeMenuSwitch":
             switch = tree.nodes.new("GeometryNodeIndexSwitch")
-            parent = node.parent
-            node.parent = None
-            switch.location = node.location
-            switch.parent = parent
-            switch.width = node.width
+            utils.transfer_properties(node, target=switch, props=("parent", "location", "width", "hide", "data_type"))
             switch_items = switch.index_switch_items
             switch_items.clear()
-            switch.hide = node.hide
-            switch.data_type = node.data_type
 
             for item in node.enum_definition.enum_items:
                 switch_items.new()
@@ -510,15 +504,9 @@ class NODE_OT_convert_switch_type(Operator):
 
         elif node.bl_idname == "GeometryNodeIndexSwitch":
             switch = tree.nodes.new("GeometryNodeMenuSwitch")
-            parent = node.parent
-            node.parent = None
-            switch.location = node.location
-            switch.parent = parent
-            switch.width = node.width
+            utils.transfer_properties(node, target=switch, props=("parent", "location", "width", "hide", "data_type"))
             switch_items = switch.enum_definition.enum_items
             switch_items.clear()
-            switch.hide = node.hide
-            switch.data_type = node.data_type
 
             for i, item in enumerate(node.index_switch_items):
                 switch_items.new(str(i))
@@ -740,9 +728,7 @@ class NODE_OT_split_group_input(NodeOperatorBaseclass, Operator):
                         continue
 
                     new_node = tree.nodes.new(self.group_input_idname)
-                    new_node.parent = old_node.parent
-                    new_node.width = old_node.width
-                    new_node.label = old_node.label
+                    utils.transfer_properties(old_node, target=new_node, props=("parent", "width", "label"))
                     new_node_sockets = filter(self.is_valid_socket, new_node.outputs)
 
                     for soc in new_node_sockets:
@@ -772,8 +758,7 @@ class NODE_OT_split_group_input(NodeOperatorBaseclass, Operator):
 
                     for link in sorted(old_socket.links, key=lambda x: -x.to_node.location.y):
                         new_node = tree.nodes.new(self.group_input_idname)
-                        new_node.width = old_node.width
-                        new_node.label = old_node.label
+                        utils.transfer_properties(old_node, target=new_node, props=("width", "label"))
                         new_node_sockets = filter(self.is_valid_socket, new_node.outputs)
 
                         for soc in new_node_sockets:
@@ -864,10 +849,7 @@ class NODE_OT_merge_group_input(NodeOperatorBaseclass, Operator):
             utils.align_by_bounding_box(target_nodes=target, nodes_to_move=new_node)
 
         if has_active:
-            new_node.parent = active_node.parent
-            new_node.width = active_node.width
-            new_node.label = active_node.label
-            new_node.location = active_node.location
+            utils.transfer_properties(active_node, target=new_node, props=("parent", "width", "label", "location"))
         else:
             parents = Counter(node.parent for node in group_inputs)
             parent = parents.most_common(1)[0][0]
@@ -961,14 +943,7 @@ class NODE_OT_convert_math_node(Operator):
     def convert_node(tree, node):
         if node.bl_idname == "ShaderNodeMath":
             switch = tree.nodes.new("FunctionNodeIntegerMath")
-            parent = node.parent
-            node.parent = None
-            switch.location = node.location
-            switch.parent = parent
-
-            switch.width = node.width
-            switch.hide = node.hide
-            switch.operation = node.operation
+            utils.transfer_properties(node, target=switch, props=("parent", "location", "hide", "width", "operation"))
 
             for old_sock, new_sock in zip(node.inputs, switch.inputs):
                 for link in old_sock.links:
@@ -989,13 +964,7 @@ class NODE_OT_convert_math_node(Operator):
 
         elif node.bl_idname == "FunctionNodeIntegerMath":
             switch = tree.nodes.new("ShaderNodeMath")
-            parent = node.parent
-            node.parent = None
-            switch.location = node.location
-            switch.parent = parent
-            switch.hide = node.hide
-            switch.width = node.width
-            switch.operation = node.operation
+            utils.transfer_properties(node, target=switch, props=("parent", "location", "hide", "width", "operation"))
 
             for old_sock, new_sock in zip(node.inputs, switch.inputs):
                 for link in old_sock.links:

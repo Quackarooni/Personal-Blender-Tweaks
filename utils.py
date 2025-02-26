@@ -63,8 +63,7 @@ def return_false_when(*args, **_):
 
 def transfer_properties(source, target, props):
     for prop_name in props:
-        prop = getattr(source, prop_name)
-        setattr(target, prop_name, prop)
+        setattr(target, prop_name, getattr(source, prop_name))
 
 
 def fetch_user_preferences(attr_id=None):
