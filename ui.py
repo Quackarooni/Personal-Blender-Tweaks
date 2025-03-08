@@ -190,8 +190,8 @@ class NODE_PT_node_info(Panel):
         active_node = context.active_node
         try:
             location = str((active_node.location.x, active_node.location.y))
-            size = str(tuple(active_node.dimensions))
-            dimensions = str((active_node.width, utils.get_height(active_node)))
+            size = str((active_node.width, utils.get_height(active_node)))
+            dimensions = str(tuple(active_node.dimensions))
         except (ZeroDivisionError, ValueError):
             size = "None"
             dimensions = "None"
