@@ -189,9 +189,9 @@ class NODE_PT_node_info(Panel):
 
         active_node = context.active_node
         try:
-            location = str((active_node.location.x, active_node.location.y))
-            size = str((active_node.width, utils.get_height(active_node)))
-            dimensions = str(tuple(active_node.dimensions))
+            location = f"({active_node.location.x:.2f}, {active_node.location.y:.2f})"
+            size = f"({active_node.width:.2f}, {utils.get_height(active_node):.2f})"
+            dimensions = f"({active_node.dimensions.x:.2f}, {active_node.dimensions.y:.2f})"
         except (ZeroDivisionError, ValueError):
             size = "None"
             dimensions = "None"
