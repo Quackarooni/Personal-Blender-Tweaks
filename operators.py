@@ -296,91 +296,6 @@ class NODE_OT_multiple_make_local_all(Operator):
         return {"FINISHED"}
 
 
-class NODE_OT_clean_invisible_links(Operator):
-    bl_idname = "node.clean_invisible_links"
-    bl_label = "Clean Invisible Links"
-    bl_options = {"REGISTER", "UNDO_GROUPED"}
-
-    @classmethod
-    @return_false_when(AttributeError)
-    def poll(cls, context):
-        links = context.space_data.edit_tree.links
-        return len(utils.filter_hidden_links(links, as_tuple=True)) > 0
-
-    def execute(self, context):
-        links = context.space_data.edit_tree.links
-        invisible_links = utils.filter_hidden_links(links, as_tuple=True)
-
-        for link in invisible_links:
-            links.remove(link)
-
-        self.report({"INFO"}, f"Cleared {len(invisible_links)} invisible links.")
-        return {"FINISHED"}
-
-
-class NODE_OT_clean_hidden_data_blocks(Operator):
-    bl_idname = "node.clean_hidden_data_blocks"
-    bl_label = "Clean Hidden Data-Blocks"
-    bl_options = {"REGISTER", "UNDO_GROUPED"}
-
-    @classmethod
-    def poll(cls, context):
-        links = context.space_data.edit_tree.links
-        return len(utils.filter_hidden_data_blocks(links, as_tuple=True)) > 0
-
-    def execute(self, context):
-        links = context.space_data.edit_tree.links
-        sockets = utils.filter_hidden_data_blocks(links, as_tuple=True)
-
-        for _link, socket, _data_block in sockets:
-            socket.default_value = None
-
-        self.report({"INFO"}, f"Cleared {len(sockets)} hidden data-blocks.")
-        return {"FINISHED"}
-
-
-class NODE_OT_clean_data_block_defaults(Operator):
-    bl_idname = "node.clean_data_block_defaults"
-    bl_label = "Clean Data-Block Defaults"
-    bl_options = {"REGISTER", "UNDO_GROUPED"}
-
-    @classmethod
-    def poll(cls, context):
-        tree = context.space_data.edit_tree
-        return len(utils.get_data_block_defaults(tree, in_out="BOTH", as_tuple=True)) > 0
-
-    def execute(self, context):
-        tree = context.space_data.edit_tree
-        sockets = utils.get_data_block_defaults(tree, in_out="BOTH", as_tuple=True)
-
-        for socket, _data_block in sockets:
-            socket.default_value = None
-
-        self.report({"INFO"}, f"Cleared {len(sockets)} hidden data-blocks.")
-        return {"FINISHED"}
-
-
-class NODE_OT_check_cleanup_status(Operator):
-    bl_idname = "node.check_cleanup_status"
-    bl_label = "Check Cleanup Status"
-    bl_options = {"REGISTER", "UNDO_GROUPED"}
-
-    @classmethod
-    def poll(cls, context):
-        links = context.space_data.edit_tree.links
-        return len(tuple(l for l in links if not l.is_hidden)) > 0
-
-    def execute(self, context):
-        links = context.space_data.edit_tree.links
-        invisible_links = tuple(l for l in links if l.is_hidden)
-
-        for link in invisible_links:
-            links.remove(link)
-
-        self.report({"INFO"}, f"Cleared {len(invisible_links)} invisible links.")
-        return {"FINISHED"}
-
-
 class NODE_OT_merge_reroutes_to_switch(Operator):
     bl_idname = "node.merge_reroutes_to_switch"
     bl_label = "Reroutes to Switch"
@@ -1012,9 +927,6 @@ classes = (
     NODE_OT_multiple_asset_clear,
     NODE_OT_multiple_fake_user_set,
     NODE_OT_multiple_fake_user_clear,
-    NODE_OT_clean_invisible_links,
-    NODE_OT_clean_data_block_defaults,
-    NODE_OT_clean_hidden_data_blocks,
     NODE_OT_merge_reroutes_to_switch,
     NODE_OT_convert_switch_type,
     NODE_OT_menu_switch_to_enum,

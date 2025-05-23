@@ -176,47 +176,6 @@ def get_bounds_midpoint(nodes):
 
 
 @extend_to_return_tuple
-def filter_hidden_links(links):
-    for link in links:
-        if link.is_hidden:
-            yield link
-
-
-@extend_to_return_tuple
-def filter_hidden_data_blocks(links):
-    for link in links:
-        try:
-            socket = link.to_socket
-            data_block = socket.default_value
-            getattr(data_block, "name")
-
-            yield (link, socket, data_block)
-
-        except AttributeError:
-            pass
-
-
-@extend_to_return_tuple
-def get_data_block_defaults(tree, *, in_out):
-    for socket in tree.interface.items_tree:
-        if socket.item_type == "PANEL":
-            continue
-
-        # in_out_status = True if (in_out == 'BOTH') else socket.in_out == in_out
-        # TODO - Add enums for selecting ('INPUT', 'OUTPUT', 'BOTH') and erroring at invalid inputs
-        in_out_status = True if (in_out == "BOTH") else socket.in_out == in_out
-
-        if in_out_status:
-            if not hasattr(socket, "default_value"):
-                continue
-
-            data_block = socket.default_value
-
-            if hasattr(data_block, "name"):
-                yield socket, data_block
-
-
-@extend_to_return_tuple
 def filter_group_nodes(nodes):
     for node in nodes:
         if getattr(node, "node_tree", None):

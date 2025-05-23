@@ -271,179 +271,6 @@ class NODE_PT_asset_operators(Panel):
         row.operator("node.multiple_make_local_all")
 
 
-class NODE_PT_node_cleanup(Panel):
-    bl_label = "Node Cleanup"
-    bl_category = "Options"
-    bl_region_type = "UI"
-    bl_space_type = "NODE_EDITOR"
-
-    @classmethod
-    def poll(cls, context):
-        return context.space_data.edit_tree is not None
-
-    @staticmethod
-    def draw_invisible_links(layout, context):
-        links = context.space_data.edit_tree.links
-        invisible_links = utils.filter_hidden_links(links, as_tuple=True)
-
-        row = layout.row(align=True)
-        row.alignment = "CENTER"
-
-        if len(invisible_links) <= 0:
-            row.label(text="No invisible links found.")
-
-        else:
-            col1 = row.column()
-            col2 = row.column()
-            for link in invisible_links:
-                row = col1.row(align=True)
-                row.alignment = "LEFT"
-                row.template_node_socket(color=link.from_socket.draw_color_simple())
-                row.label(text=f"{link.from_node.bl_label} ({link.from_socket.name})")
-
-                row = col2.row(align=True)
-                row.alignment = "LEFT"
-                draw_bool_prop_icon(row, link, "is_muted", icon_true="PANEL_CLOSE", icon_false="FORWARD")
-
-                row.template_node_socket(color=link.to_socket.draw_color_simple())
-                row.label(text=f"{link.to_node.bl_label} ({link.to_socket.name})")
-
-    @staticmethod
-    def draw_uncleared_data_blocks(layout, context):
-        row = layout.row(align=True)
-        row.alignment = "CENTER"
-
-        icon_dict = {
-            "OBJECT": "OBJECT_DATA",
-            "COLLECTION": "OUTLINER_COLLECTION",
-            "MATERIAL": "MATERIAL_DATA",
-            "IMAGE": "IMAGE_DATA",
-            "TEXTURE": "TEXTURE_DATA",
-        }
-        collection_icon_dict = {
-            "NONE": "OUTLINER_COLLECTION",
-            "COLOR_01": "COLLECTION_COLOR_01",
-            "COLOR_02": "COLLECTION_COLOR_02",
-            "COLOR_03": "COLLECTION_COLOR_03",
-            "COLOR_04": "COLLECTION_COLOR_04",
-            "COLOR_05": "COLLECTION_COLOR_05",
-            "COLOR_06": "COLLECTION_COLOR_06",
-            "COLOR_07": "COLLECTION_COLOR_07",
-            "COLOR_08": "COLLECTION_COLOR_08",
-        }
-
-        links = context.space_data.edit_tree.links
-        data_block_info = utils.filter_hidden_data_blocks(links, as_tuple=True)
-
-        if len(data_block_info) <= 0:
-            row.label(text="No hidden data-blocks found.")
-
-        else:
-            col1 = row.column()
-            col2 = row.column()
-
-            for link, socket, data_block in data_block_info:
-                socket = link.to_socket
-
-                row = col1.row(align=True)
-                row.alignment = "LEFT"
-
-                row.template_node_socket(color=socket.draw_color_simple())
-                row.label(text=f"{link.to_node.bl_label} ({socket.name})")
-
-                row = col2.row(align=True)
-                row.alignment = "LEFT"
-                draw_bool_prop_icon(row, link, "is_muted", icon_true="PANEL_CLOSE", icon_false="FORWARD")
-                draw_data_block(row, data_block)
-
-    @staticmethod
-    def draw_group_data_blocks(layout, context, in_out):
-        tree = context.space_data.edit_tree
-        sockets = utils.get_data_block_defaults(tree, in_out=in_out, as_tuple=True)
-
-        indent = _indented_layout(layout, level=1)
-        indent.label(text="Inputs:" if in_out == "INPUT" else "Outputs:")
-        row = layout.row(align=True)
-        row.alignment = "CENTER"
-
-        color_dict = {
-            "NodeSocketObject": (
-                0.9300000071525574,
-                0.6200000047683716,
-                0.36000001430511475,
-                1.0,
-            ),
-            "NodeSocketCollection": (
-                0.9599999785423279,
-                0.9599999785423279,
-                0.9599999785423279,
-                1.0,
-            ),
-            "NodeSocketMaterial": (
-                0.9200000166893005,
-                0.46000000834465027,
-                0.5099999904632568,
-                1.0,
-            ),
-            "NodeSocketImage": (
-                0.38999998569488525,
-                0.2199999988079071,
-                0.38999998569488525,
-                1.0,
-            ),
-            "NodeSocketTexture": (
-                0.6200000047683716,
-                0.3100000023841858,
-                0.6399999856948853,
-                1.0,
-            ),
-        }
-
-        if len(sockets) <= 0:
-            row.label(text="No data-block defaults found.")
-
-        else:
-            col1 = row.column()
-            col2 = row.column()
-
-            for socket, data_block in sockets:
-                row = col1.row(align=True)
-                row.alignment = "LEFT"
-                row.template_node_socket(color=color_dict[socket.socket_type])
-                row.label(text=f"{socket.name}")
-
-                row = col2.row()
-                row.alignment = "LEFT"
-
-                row.label(text="", icon="REMOVE")
-                draw_data_block(row, data_block)
-
-    def draw(self, context):
-        layout = self.layout
-        prefs = fetch_user_preferences()
-        tree = context.space_data.edit_tree
-
-        if collapsible_row(layout, prefs, "show_invisible_links", text="Invisible Links"):
-            self.draw_invisible_links(layout, context)
-        layout.operator("node.clean_invisible_links")
-
-        # Only GeometryNodeTrees support data-block sockets so skip for other node tree types
-        if tree.bl_idname == "GeometryNodeTree":
-            if collapsible_row(layout, prefs, "show_hidden_data_blocks", text="Hidden Data-Blocks"):
-                self.draw_uncleared_data_blocks(layout, context)
-            layout.operator("node.clean_hidden_data_blocks")
-
-            if collapsible_row(
-                layout,
-                prefs,
-                "show_group_data_block_defaults",
-                text="Group Data-Block Defaults",
-            ):
-                self.draw_group_data_blocks(layout, context, in_out="INPUT")
-                self.draw_group_data_blocks(layout, context, in_out="OUTPUT")
-            layout.operator("node.clean_data_block_defaults")
-
-
 def draw_personal_settings(self, context):
     self.layout.popover(panel="NODE_PT_personal_settings", text="", icon="PREFERENCES")
 
@@ -568,7 +395,6 @@ if bpy.app.version >= (4, 3, 0):
         NODE_PT_asset_operators,
         # NODE_PT_node_coordinates,
         # NODE_PT_nodegroup_names_and_descriptions,
-        NODE_PT_node_cleanup,
         NODE_PT_object_data_selector,
         NODE_PT_reroutes_to_switch,
         NODE_PT_math_node_convert,
@@ -583,7 +409,6 @@ else:
         NODE_PT_asset_operators,
         # NODE_PT_node_coordinates,
         # NODE_PT_nodegroup_names_and_descriptions,
-        NODE_PT_node_cleanup,
         NODE_PT_object_data_selector,
         NODE_PT_reroutes_to_switch,
         NODE_PT_group_inputs,

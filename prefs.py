@@ -13,30 +13,12 @@ class PBTweaksPreferences(bpy.types.AddonPreferences):
         description="When hiding unused group sockets, unhide any hidden virtual socket",
     )
 
-    show_invisible_links: BoolProperty(
-        name="",
-        default=False,
-        description="Show Invisible Links",
-    )
-
-    show_hidden_data_blocks: BoolProperty(
-        name="",
-        default=False,
-        description="Show Hidden Data-Blocks",
-    )
-
     show_hidden_nodegroups: BoolProperty(
         name="Show Hidden Nodegroups",
         default=False,
         description="Show Hidden Nodegroups",
     )
-
-    show_group_data_block_defaults: BoolProperty(
-        name="",
-        default=False,
-        description="Show Group Data-Block Defaults",
-    )
-
+    
     switch_count: IntProperty(
         name="No. of Switches",
         default=1,
